@@ -180,3 +180,22 @@ After the rerun, the admissions brief should emphasize whichever result is genui
 - or, if none of these appears, report that result directly.
 
 A null or unexpected result is still useful if the methodology is clear.
+
+
+## Model used for the official Research V2 run
+
+The original PoC model `meta/llama-3.3-70b-instruct` is no longer available on the NVIDIA hosted endpoint.
+
+Research V2 therefore defaults to:
+
+`nvidia/nemotron-3-super-120b-a12b`
+
+for both detector and simulated victim unless an explicit model override is recorded before the benchmark freeze.
+
+Current sampling configuration:
+
+- detector temperature = 0.5
+- victim temperature = 0.5
+- top_p = 1.0
+
+Because the model changed, Research V2 results are a **new empirical evaluation**, not a direct apples-to-apples reproduction of the original PoC.
