@@ -215,3 +215,19 @@ The original course PoC used Gemini 2.5 Flash for red-team generation. A Researc
 Because provider-policy refusal is a confound for RQ2, the official Research V2 adaptive experiment does **not** use a generative red-team model. It uses pre-registered, author-constructed variants with a fixed adaptive progression rule.
 
 This is methodologically preferable for the admissions study because it improves reproducibility and prevents "evasion" from being caused merely by the generator ceasing to attack.
+
+
+## Detector output-control protocol
+
+A pre-registered adaptive smoke test produced a detector classification whose JSON was truncated before the object closed. Research V2 therefore fixes the following output controls before the official run:
+
+- detector max output tokens: 1024;
+- detector reasoning: disabled;
+- detector structured output: NVIDIA NIM `guided_json` with an explicit JSON schema;
+- victim max output tokens: 1024;
+- victim reasoning: disabled;
+- detector and victim `finish_reason` recorded in raw outputs.
+
+A detector parse failure remains **missing data** and is never converted into a benign prediction.
+
+If the victim finishes because of the output-length limit, the raw row is marked as truncated so a negative leakage result can be interpreted cautiously.
