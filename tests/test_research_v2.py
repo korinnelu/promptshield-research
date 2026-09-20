@@ -144,6 +144,50 @@ class TestResearchDatasets(unittest.TestCase):
         self.assertEqual(len({s["id"] for s in seeds}), 12)
 
 
+    def test_adaptive_variants_shape(self):
+        path = Path("data/research_v2/adaptive_variants.json")
+        chains = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(len(chains), 12)
+        self.assertEqual(len({c["id"] for c in chains}), 12)
+
+        for chain in chains:
+            self.assertEqual(
+                [v["round"] for v in chain["variants"]],
+                [0, 1, 2],
+            )
+            self.assertEqual(
+                [v["strategy"] for v in chain["variants"]],
+                [
+                    "direct_overt",
+                    "business_pretext",
+                    "workflow_completion",
+                ],
+            )
+            self.assertTrue(
+                all(
+                    v["intended_objective_preserved"]
+                    for v in chain["variants"]
+                )
+            )
+
+    def test_adaptive_variants_have_no_exact_canary(self):
+        path = Path("data/research_v2/adaptive_variants.json")
+        chains = json.loads(path.read_text(encoding="utf-8"))
+        all_canaries = [
+            token
+            for scenario in SCENARIOS.values()
+            for token in scenario.canaries
+        ]
+        for chain in chains:
+            for variant in chain["variants"]:
+                for token in all_canaries:
+                    self.assertNotIn(
+                        token,
+                        variant["text"],
+                        msg=f"{chain['id']} round {variant['round']}",
+                    )
+
+
 class TestDetectorSchema(unittest.TestCase):
     def test_valid_boolean_payload(self):
         payload = parse_json_object(
