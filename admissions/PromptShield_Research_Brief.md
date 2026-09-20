@@ -17,14 +17,16 @@
 
 ## 一句核心問題
 
-> **偵測到攻擊，不一定代表成功防禦；成功規避偵測，也不一定代表攻擊真的成功。**
+> **Detection performance 不等於 downstream security outcome；成功規避偵測，也不一定代表攻擊真的成功。**
 
 多數安全展示容易停留在「模型是否把輸入判斷為攻擊」，但實際系統更重要的問題是：**攻擊是否真的造成敏感資訊洩漏或未授權行為？**
 
 PromptShield 因此將評估拆成兩層：
 
 1. **Detection Layer** — LLM-based detector 是否識別 Prompt Injection？
-2. **Outcome Layer** — Victim LLM 是否實際洩漏預先植入的敏感資訊？
+2. **Outcome Layer** — 在獨立、平行的 victim 測試中，LLM 是否實際洩漏預先植入的敏感資訊？
+
+兩個模組在研究中用來比較「分類判斷」與「實際安全結果」，而不是假設 detector 已經在 production pipeline 中攔截輸入。
 
 ## Research Questions
 
@@ -35,7 +37,7 @@ PromptShield 因此將評估拆成兩層：
 自適應紅隊能否在降低被偵測機率的同時，仍保留原本的惡意攻擊目標？
 
 **RQ3｜Detection vs. Outcome**  
-Prompt Injection 的 detection performance，是否真的能代表 downstream data leakage 的防禦效果？
+Prompt Injection 的 detection performance，與 downstream data leakage 之間的關係為何？
 
 ## 系統研究流程
 
