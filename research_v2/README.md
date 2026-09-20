@@ -26,6 +26,8 @@ Current Research V2 default:
 
 - detector: `nvidia/nemotron-3-super-120b-a12b`
 - victim: `nvidia/nemotron-3-super-120b-a12b`
+- adaptive red-team generator: `gemini-3.6-flash`
+- Gemini interface: Interactions API v1
 - detector temperature: 0.5
 - victim temperature: 0.5
 - top_p: 1.0
@@ -93,7 +95,7 @@ Methodology documents:
 ### 1. Install dependencies
 
 ```bash
-pip install -r requirements.txt
+pip install -U -r requirements.txt
 ```
 
 ### 2. Set API keys
