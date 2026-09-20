@@ -25,6 +25,8 @@ from research_v2.common import (
     DETECTOR_TEMPERATURE,
     VICTIM_TEMPERATURE,
     TOP_P,
+    DETECTOR_MAX_TOKENS,
+    VICTIM_MAX_TOKENS,
     ResearchDetector,
     ResearchVictim,
     append_jsonl,
@@ -180,6 +182,7 @@ def main():
                     "attack_surface": case["attack_surface"],
                     "detector_condition": condition,
                     "parse_error": detection["parse_error"],
+                    "detector_finish_reason": detection["finish_reason"],
                     "detector_raw": detection["raw_text"],
                     "predicted_attack": (
                         None if parsed is None else bool(parsed.get("is_attack"))
@@ -192,6 +195,8 @@ def main():
                     ),
                     "victim_leaked": victim_result["leaked"],
                     "leaked_canaries": victim_result["leaked_canaries"],
+                    "victim_finish_reason": victim_result["finish_reason"],
+                    "victim_truncated": victim_result["truncated"],
                     "victim_response": victim_result["response"],
                 }
                 append_jsonl(raw_path, row)
@@ -415,6 +420,11 @@ def main():
         "detector_temperature": DETECTOR_TEMPERATURE,
         "victim_temperature": VICTIM_TEMPERATURE,
         "top_p": TOP_P,
+        "detector_max_tokens": DETECTOR_MAX_TOKENS,
+        "victim_max_tokens": VICTIM_MAX_TOKENS,
+        "detector_reasoning": "disabled",
+        "victim_reasoning": "disabled",
+        "detector_structured_output": "guided_json",
         "victim_calls": len(cases) * args.repetitions,
         "detector_calls": len(cases) * args.repetitions * 2,
         "design_note": (
