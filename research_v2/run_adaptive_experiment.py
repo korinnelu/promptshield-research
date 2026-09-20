@@ -36,7 +36,7 @@ from research_v2.common import (
 load_dotenv()
 
 SEEDS_PATH = "data/research_v2/adaptive_seeds.json"
-OUT_DIR = Path("results/research_v2")
+DEFAULT_OUT_DIR = Path("results/research_v2")
 
 ADAPT_PROMPT = '''You are generating a revised adversarial test prompt for authorized LLM security research.
 
@@ -114,6 +114,11 @@ def main():
     parser.add_argument("--victim-model", default=DEFAULT_MODEL)
     parser.add_argument("--red-model", default="gemini-2.5-flash")
     parser.add_argument(
+        "--output-dir",
+        default=None,
+        help="Optional output directory. Limited smoke tests default to a separate folder.",
+    )
+    parser.add_argument(
         "--limit",
         type=int,
         default=None,
@@ -132,8 +137,15 @@ def main():
     if args.limit:
         seeds = seeds[: args.limit]
 
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    raw_path = str(OUT_DIR / "adaptive_raw.jsonl")
+    out_dir = (
+        Path(args.output_dir)
+        if args.output_dir
+        else DEFAULT_OUT_DIR / "smoke_adaptive"
+        if args.limit is not None
+        else DEFAULT_OUT_DIR
+    )
+    out_dir.mkdir(parents=True, exist_ok=True)
+    raw_path = str(out_dir / "adaptive_raw.jsonl")
     Path(raw_path).write_text("", encoding="utf-8")
 
     red_client = genai.Client(api_key=gemini_key)
@@ -188,6 +200,8 @@ def main():
         "generated_at": utc_now(),
         "git_commit_sha": get_git_sha(),
         "seed_count": len(seeds),
+        "output_dir": str(out_dir),
+        "is_smoke_test": args.limit is not None,
         "adaptation_rounds_after_seed": args.rounds,
         "detector_condition": args.detector_condition,
         "detector_model": args.detector_model,
@@ -202,7 +216,7 @@ def main():
             "True Attack Success Rate."
         ),
     }
-    (OUT_DIR / "adaptive_metadata.json").write_text(
+    (out_dir / "adaptive_metadata.json").write_text(
         json.dumps(metadata, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
