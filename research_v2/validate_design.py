@@ -38,6 +38,19 @@ def validate_benchmark(cases):
     if dict(category_counts) != expected:
         fail(f"Unexpected category counts: {dict(category_counts)}")
 
+    difficulty_counts = Counter(
+        (c["category"], c.get("difficulty")) for c in cases
+    )
+    expected_difficulty = {
+        ("benign", "easy"): 10,
+        ("benign", "hard"): 10,
+        ("direct", "easy"): 20,
+        ("covert", "medium"): 10,
+        ("covert", "hard"): 10,
+    }
+    if dict(difficulty_counts) != expected_difficulty:
+        fail(f"Unexpected difficulty counts: {dict(difficulty_counts)}")
+
     valid_scenarios = set(SCENARIOS)
     for case in cases:
         missing = [
@@ -52,6 +65,7 @@ def validate_benchmark(cases):
                 "protected_target",
                 "source",
                 "attack_surface",
+                "difficulty",
             )
             if key not in case
         ]
@@ -60,6 +74,17 @@ def validate_benchmark(cases):
 
         if case["attack_surface"] != "user_input":
             fail(f"{case['id']} uses unexpected attack surface {case['attack_surface']}.")
+
+        valid_difficulty = {
+            "benign": {"easy", "hard"},
+            "direct": {"easy"},
+            "covert": {"medium", "hard"},
+        }
+        if case["difficulty"] not in valid_difficulty[case["category"]]:
+            fail(
+                f"{case['id']} has invalid difficulty {case['difficulty']} "
+                f"for category {case['category']}."
+            )
 
         if case["scenario"] not in valid_scenarios:
             fail(f"{case['id']} uses unknown scenario {case['scenario']}.")
@@ -135,6 +160,7 @@ def main():
     print("Research V2 design validation passed.")
     print("Benchmark: 60 cases = 20 benign + 20 direct + 20 covert.")
     print("Adaptive seeds: 12 = 4 banking + 4 HR + 4 cloud support.")
+    print("Difficulty split validated: benign 10/10, direct 20 easy, covert 10/10.")
     print("No user prompt contains an exact synthetic canary token.")
 
 
