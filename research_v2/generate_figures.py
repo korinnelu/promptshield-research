@@ -106,7 +106,7 @@ def plot_detection_leakage_matrix():
         plt.close(fig)
 
 
-def plot_adaptive_funnel():
+def plot_adaptive_outcomes():
     path = RESULTS / "adaptive_summary.csv"
     if not path.exists():
         return
@@ -139,7 +139,7 @@ def main():
     FIG_DIR.mkdir(parents=True, exist_ok=True)
     plot_recall_by_category()
     plot_detection_leakage_matrix()
-    plot_adaptive_funnel()
+    plot_adaptive_outcomes()
     print(f"Figures saved to {FIG_DIR}")
 
 
