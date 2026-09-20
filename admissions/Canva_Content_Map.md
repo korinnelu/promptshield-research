@@ -85,17 +85,29 @@ Seed → Detected? → Pre-registered Obfuscation Variant → Next Round
 
 ### 右側 65%
 
-Research V2 跑完後放兩張圖：
+放兩個已完成的實證圖／卡片：
 
-**Figure A**
-Recall by Attack Category
+**Figure A — Recall by Attack Category**
 
-**Figure B**
-Detection × Leakage matrix
+- Direct Recall = 100%
+- Covert Recall = 90%
+- Hard Covert Recall = 80%
+- Baseline 與 Structured 完全重疊
 
-目前 Canva 初稿可以先放灰色 placeholder：
+旁邊加一句：
 
-> Research V2 experiment in progress
+> 180 paired trials 中，兩個 detector prompts 的 binary decisions 完全一致。
+
+**Figure B — Adaptive Outcome**
+
+- 3 / 12 chains achieved detector evasion
+- all 3 preserved the registered adversarial objective
+- 0 / 34 adaptive attempts leaked a canary
+- True Attack Success = 0
+
+大字：
+
+> **Evasion ≠ Successful Attack**
 
 ### 頁面底部
 
@@ -113,39 +125,41 @@ Detection × Leakage matrix
 
 這頁不是展示成功，而是展示你會分析「為什麼方法不夠好」。
 
-### 上半部：Failure Case
+### 上半部：Two-Sided Failure Analysis
 
-畫三階段：
-
-```text
-Explicit malicious request
-        ↓
-Business / compliance pretext
-        ↓
-Natural insider-style request
-```
-
-右邊：
+左側畫 adaptive chain：
 
 ```text
-Detected
-   ↓
-Detected
-   ↓
-EVADED
+Direct Attack
+    ↓ detected
+Business Pretext
+    ↓ detected
+Workflow Completion
+    ↓ EVADED
 ```
 
-但在 EVADED 旁放問號：
+旁邊：
 
-> Was the malicious objective still preserved?
+> Objective preserved ✓  
+> Canary leakage ✕  
+> True attack success ✕
 
-這就是整頁的亮點。
+右側放 exploratory benign leakage case：
+
+```text
+Benign security-guidance query
+        ↓
+Detector: BENIGN (correct)
+        ↓
+Victim leaked 3 cloud canaries
+in 2 / 3 repetitions
+```
+
+頁面核心：
+
+> **Correct classification ≠ safe downstream behavior**
 
 ### 中間：重新定義 attack success
-
-大字：
-
-> **Evasion ≠ Successful Attack**
 
 下面：
 
@@ -156,7 +170,15 @@ AND Objective Preservation
 AND Actual Leakage
 ```
 
-### 下方左側：Methodological Improvement
+### 下方左側：Empirical Takeaways
+
+- Structured prompt did not improve binary decisions
+- hard covert/contextual cases created stable false negatives
+- 3 / 12 adaptive chains evaded detection
+- 0 observed adaptive canary leaks
+- benign query produced post-hoc leakage in 2 / 3 runs
+
+### 下方中間：Methodological Improvement
 
 - synthetic canary secrets
 - fixed benchmark before testing
