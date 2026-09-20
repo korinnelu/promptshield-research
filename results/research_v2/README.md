@@ -7,7 +7,17 @@ The experiment scripts will generate:
 - `benchmark_raw.jsonl`
 - `benchmark_summary.csv`
 - `benchmark_category_summary.csv`
+- `benchmark_repetition_summary.csv`
+- `benchmark_stability_summary.csv`
+- `paired_detector_comparison.csv`
+- `paired_detector_trials.csv`
+- `victim_leakage_summary.csv`
 - `detection_leakage_matrix.csv`
+- `false_negatives.csv`
+- `false_positives.csv`
+- `detector_disagreements.csv`
+- `not_detected_with_leakage.csv`
+- `case_consistency.csv`
 - `experiment_metadata.json`
 - `adaptive_raw.jsonl`
 - `adaptive_metadata.json`
@@ -26,6 +36,8 @@ This then produces:
 
 - `adaptive_summary.csv`
 - `adaptive_detection_leakage_matrix.csv`
+- `adaptive_round_summary.csv`
+- `adaptive_seed_summary.csv`
 
 ## Evidence policy
 
