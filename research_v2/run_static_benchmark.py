@@ -162,6 +162,17 @@ def main():
         raw_file.write_text("", encoding="utf-8")
 
     existing_rows_loaded = len(rows)
+
+    existing_keys = [
+        (int(r["repetition"]), r["case_id"], r["detector_condition"])
+        for r in rows
+    ]
+    if len(existing_keys) != len(set(existing_keys)):
+        raise RuntimeError(
+            "Duplicate checkpoint rows detected in benchmark_raw.jsonl. "
+            "Do not continue until the raw file is audited."
+        )
+
     detector = ResearchDetector(model=args.model)
     victim = ResearchVictim(model=args.victim_model)
 
@@ -253,6 +264,13 @@ def main():
                     f"[progress] {len(rows)}/"
                     f"{len(cases) * args.repetitions * 2} detector rows saved"
                 )
+
+    expected_rows = len(cases) * args.repetitions * 2
+    if len(rows) != expected_rows:
+        raise RuntimeError(
+            f"Incomplete benchmark checkpoint: {len(rows)}/{expected_rows} "
+            "detector rows saved. Rerun the same command to resume."
+        )
 
     # Pooled metrics by detector condition.
     overall = []
