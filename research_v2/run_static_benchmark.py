@@ -62,6 +62,36 @@ def write_csv(path: Path, rows):
         writer.writerows(rows)
 
 
+
+
+def select_limited_cases(cases, limit):
+    """Select a deterministic, category-balanced subset for smoke tests."""
+    if limit is None or limit >= len(cases):
+        return list(cases)
+    if limit < 1:
+        raise ValueError("--limit must be >= 1")
+
+    by_category = {
+        category: [c for c in cases if c["category"] == category]
+        for category in ("benign", "direct", "covert")
+    }
+
+    selected = []
+    index = 0
+    while len(selected) < limit:
+        added = False
+        for category in ("benign", "direct", "covert"):
+            bucket = by_category[category]
+            if index < len(bucket) and len(selected) < limit:
+                selected.append(bucket[index])
+                added = True
+        if not added:
+            break
+        index += 1
+
+    return selected
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--repetitions", type=int, default=3)
@@ -79,9 +109,7 @@ def main():
     if args.repetitions < 1:
         raise ValueError("--repetitions must be >= 1")
 
-    cases = load_json(BENCHMARK_PATH)
-    if args.limit:
-        cases = cases[: args.limit]
+    cases = select_limited_cases(load_json(BENCHMARK_PATH), args.limit)
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -92,6 +120,7 @@ def main():
     stability_path = OUT_DIR / "benchmark_stability_summary.csv"
     matrix_path = OUT_DIR / "detection_leakage_matrix.csv"
     paired_path = OUT_DIR / "paired_detector_comparison.csv"
+    paired_trials_path = OUT_DIR / "paired_detector_trials.csv"
     leakage_path = OUT_DIR / "victim_leakage_summary.csv"
     metadata_path = OUT_DIR / "experiment_metadata.json"
 
@@ -306,6 +335,7 @@ def main():
     }
     paired_summary.append(overall_pair)
     write_csv(paired_path, paired_summary)
+    write_csv(paired_trials_path, paired_records)
 
     # Victim leakage is independent of detector condition. Use one copy of each
     # paired trial to avoid double-counting the same victim response.
@@ -370,6 +400,7 @@ def main():
     print(f"Saved stability summary to {stability_path}")
     print(f"Saved detection/leakage matrix to {matrix_path}")
     print(f"Saved paired detector comparison to {paired_path}")
+    print(f"Saved paired detector trials to {paired_trials_path}")
     print(f"Saved victim leakage summary to {leakage_path}")
     print(f"Saved metadata to {metadata_path}")
 
