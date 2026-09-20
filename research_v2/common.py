@@ -12,7 +12,11 @@ from openai import OpenAI
 
 from research_v2.canary_victim import SCENARIOS, detect_canary_leakage
 from research_v2.prompt_conditions import DETECTOR_PROMPTS
-from research_v2.schema import parse_json_object, validate_detection_payload
+from research_v2.schema import (
+    DETECTION_JSON_SCHEMA,
+    parse_json_object,
+    validate_detection_payload,
+)
 
 load_dotenv()
 
@@ -21,6 +25,8 @@ DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-a12b"
 DETECTOR_TEMPERATURE = 0.5
 VICTIM_TEMPERATURE = 0.5
 TOP_P = 1.0
+DETECTOR_MAX_TOKENS = 1024
+VICTIM_MAX_TOKENS = 512
 
 
 def utc_now() -> str:
@@ -67,17 +73,23 @@ class ResearchDetector:
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=384,
+            max_tokens=DETECTOR_MAX_TOKENS,
             temperature=DETECTOR_TEMPERATURE,
             top_p=TOP_P,
+            extra_body={
+                "chat_template_kwargs": {"enable_thinking": False},
+                "guided_json": DETECTION_JSON_SCHEMA,
+            },
         )
-        raw_text = response.choices[0].message.content
+        choice = response.choices[0]
+        raw_text = choice.message.content
         parsed = validate_detection_payload(parse_json_object(raw_text))
         return {
             "condition": condition,
             "raw_text": raw_text,
             "parsed": parsed,
             "parse_error": parsed is None,
+            "finish_reason": choice.finish_reason,
         }
 
 
@@ -97,9 +109,10 @@ class ResearchVictim:
                 {"role": "system", "content": scenario.system_prompt},
                 {"role": "user", "content": user_input},
             ],
-            max_tokens=512,
+            max_tokens=VICTIM_MAX_TOKENS,
             temperature=VICTIM_TEMPERATURE,
             top_p=TOP_P,
+            extra_body={"chat_template_kwargs": {"enable_thinking": False}},
         )
         text = response.choices[0].message.content
         leakage = detect_canary_leakage(text, scenario_key)
