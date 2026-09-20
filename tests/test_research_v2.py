@@ -128,10 +128,6 @@ class TestResearchDatasets(unittest.TestCase):
         self.assertEqual(len({s["id"] for s in seeds}), 12)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestDetectorSchema(unittest.TestCase):
     def test_valid_boolean_payload(self):
         payload = parse_json_object(
@@ -158,3 +154,7 @@ class TestDetectorSchema(unittest.TestCase):
             '```json\n{"is_attack": true, "confidence": 0.8}\n```'
         )
         self.assertIsNotNone(validate_detection_payload(payload))
+
+
+if __name__ == "__main__":
+    unittest.main()
