@@ -5,7 +5,7 @@ Design:
 - 2 detector prompt conditions
 - configurable repetitions (default 3)
 - one victim call per case/repetition, shared across detector conditions
-- raw JSONL output + CSV summaries
+- raw JSONL output + pooled, category, repetition, and stability summaries
 - parse errors are reported separately rather than silently treated as benign
 
 Usage:
@@ -17,6 +17,7 @@ import csv
 import json
 from collections import defaultdict
 from pathlib import Path
+from statistics import mean, pstdev
 
 from research_v2.common import (
     DEFAULT_MODEL,
@@ -25,6 +26,7 @@ from research_v2.common import (
     ResearchDetector,
     ResearchVictim,
     append_jsonl,
+    get_git_sha,
     load_json,
     utc_now,
 )
@@ -50,6 +52,15 @@ def summarize(rows):
     return result
 
 
+def write_csv(path: Path, rows):
+    if not rows:
+        raise ValueError(f"No rows available for {path}")
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
+        writer.writeheader()
+        writer.writerows(rows)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--repetitions", type=int, default=3)
@@ -70,9 +81,12 @@ def main():
         cases = cases[: args.limit]
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
+
     raw_path = str(OUT_DIR / "benchmark_raw.jsonl")
     summary_path = OUT_DIR / "benchmark_summary.csv"
     category_path = OUT_DIR / "benchmark_category_summary.csv"
+    repetition_path = OUT_DIR / "benchmark_repetition_summary.csv"
+    stability_path = OUT_DIR / "benchmark_stability_summary.csv"
     matrix_path = OUT_DIR / "detection_leakage_matrix.csv"
     metadata_path = OUT_DIR / "experiment_metadata.json"
 
@@ -84,6 +98,10 @@ def main():
 
     for rep in range(1, args.repetitions + 1):
         for case in cases:
+            # The victim is evaluated independently of detector condition.
+            # Sharing the same victim outcome across the two detector conditions
+            # makes the detector comparison paired rather than confounded by a
+            # different victim sample.
             victim_result = victim.respond(case["scenario"], case["text"])
 
             for condition in ("baseline", "structured"):
@@ -106,9 +124,15 @@ def main():
                     "detector_condition": condition,
                     "parse_error": detection["parse_error"],
                     "detector_raw": detection["raw_text"],
-                    "predicted_attack": None if parsed is None else bool(parsed.get("is_attack")),
-                    "predicted_type": None if parsed is None else parsed.get("attack_type"),
-                    "reported_confidence": None if parsed is None else parsed.get("confidence"),
+                    "predicted_attack": (
+                        None if parsed is None else bool(parsed.get("is_attack"))
+                    ),
+                    "predicted_type": (
+                        None if parsed is None else parsed.get("attack_type")
+                    ),
+                    "reported_confidence": (
+                        None if parsed is None else parsed.get("confidence")
+                    ),
                     "victim_leaked": victim_result["leaked"],
                     "leaked_canaries": victim_result["leaked_canaries"],
                     "victim_response": victim_result["response"],
@@ -116,16 +140,14 @@ def main():
                 append_jsonl(raw_path, row)
                 rows.append(row)
 
+    # Pooled metrics by detector condition.
     overall = []
     for condition in ("baseline", "structured"):
         group = [r for r in rows if r["detector_condition"] == condition]
         overall.append({"detector_condition": condition, **summarize(group)})
+    write_csv(summary_path, overall)
 
-    with open(summary_path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=list(overall[0].keys()))
-        writer.writeheader()
-        writer.writerows(overall)
-
+    # Category-level pooled metrics.
     category_rows = []
     grouped = defaultdict(list)
     for row in rows:
@@ -137,12 +159,49 @@ def main():
             "category": category,
             **summarize(group),
         })
+    write_csv(category_path, category_rows)
 
-    with open(category_path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=list(category_rows[0].keys()))
-        writer.writeheader()
-        writer.writerows(category_rows)
+    # Per-repetition metrics, so run-to-run stability is visible.
+    repetition_rows = []
+    for rep in range(1, args.repetitions + 1):
+        for condition in ("baseline", "structured"):
+            group = [
+                r for r in rows
+                if r["repetition"] == rep
+                and r["detector_condition"] == condition
+            ]
+            repetition_rows.append({
+                "repetition": rep,
+                "detector_condition": condition,
+                **summarize(group),
+            })
+    write_csv(repetition_path, repetition_rows)
 
+    # Mean and population SD across repetitions.
+    stability_rows = []
+    metric_names = [
+        "accuracy",
+        "precision",
+        "recall",
+        "f1",
+        "false_positive_rate",
+        "false_negative_rate",
+    ]
+    for condition in ("baseline", "structured"):
+        subset = [
+            r for r in repetition_rows
+            if r["detector_condition"] == condition
+        ]
+        record = {"detector_condition": condition}
+        for metric in metric_names:
+            values = [float(r[metric]) for r in subset]
+            record[f"{metric}_mean"] = mean(values)
+            record[f"{metric}_sd"] = pstdev(values)
+        record["parse_errors_total"] = sum(int(r["parse_errors"]) for r in subset)
+        stability_rows.append(record)
+    write_csv(stability_path, stability_rows)
+
+    # Detector classification x independently measured victim leakage.
     matrix_rows = []
     for condition in ("baseline", "structured"):
         usable = [
@@ -159,14 +218,11 @@ def main():
             "detector_condition": condition,
             **detection_leakage_matrix(usable),
         })
-
-    with open(matrix_path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=list(matrix_rows[0].keys()))
-        writer.writeheader()
-        writer.writerows(matrix_rows)
+    write_csv(matrix_path, matrix_rows)
 
     metadata = {
         "generated_at": utc_now(),
+        "git_commit_sha": get_git_sha(),
         "benchmark_path": BENCHMARK_PATH,
         "case_count": len(cases),
         "repetitions": args.repetitions,
@@ -176,8 +232,13 @@ def main():
         "victim_temperature": VICTIM_TEMPERATURE,
         "victim_calls": len(cases) * args.repetitions,
         "detector_calls": len(cases) * args.repetitions * 2,
+        "design_note": (
+            "Detector and victim are evaluated in parallel. "
+            "The detector is not assumed to be a blocking production gateway."
+        ),
         "important_note": (
-            "Model-reported confidence is stored for inspection but is not a primary metric."
+            "Model-reported confidence is stored for inspection but is not a "
+            "primary metric or calibrated probability."
         ),
     }
     metadata_path.write_text(
@@ -186,8 +247,10 @@ def main():
     )
 
     print(f"Saved raw results to {raw_path}")
-    print(f"Saved overall summary to {summary_path}")
+    print(f"Saved pooled summary to {summary_path}")
     print(f"Saved category summary to {category_path}")
+    print(f"Saved repetition summary to {repetition_path}")
+    print(f"Saved stability summary to {stability_path}")
     print(f"Saved detection/leakage matrix to {matrix_path}")
     print(f"Saved metadata to {metadata_path}")
 
