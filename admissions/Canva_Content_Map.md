@@ -44,12 +44,12 @@ Test Input ─────────┤
                                   Evaluation
 
 Adaptive only:
-Seed → Detector Feedback → Red-Team Rewrite → Next Round
+Seed → Detected? → Pre-registered Obfuscation Variant → Next Round
 ```
 
 旁邊只列技術標籤：
 - Original PoC: Gemini 2.5 Flash red team
-- Research V2: Gemini 3.6 Flash red team
+- Research V2 adaptive: pre-registered objective-preserving variants
 - Original PoC: Llama 3.3 70B
 - Research V2: Nemotron 3 Super 120B-A12B
 - Python
