@@ -47,3 +47,12 @@ Only numerical outputs produced by an actual API run may be transferred into the
 Do not manually invent, interpolate, or backfill Research V2 results.
 
 The original course-report values remain **Preliminary PoC evidence**, not Research V2 findings.
+
+
+## Smoke-test folders
+
+- `smoke_static/` — valid pipeline smoke test; not an empirical result.
+- `smoke_adaptive/` — historical generative adaptive smoke. It is **invalid for official adaptive metrics** because the red-team provider returned a refusal and destroyed the malicious objective.
+- `smoke_adaptive_preregistered/` — reserved for the corrected pre-registered adaptive smoke test.
+
+See `research/SMOKE_TEST_AUDIT.md` for the methodological interpretation.
