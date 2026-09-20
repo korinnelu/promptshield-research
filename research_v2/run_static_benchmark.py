@@ -24,6 +24,7 @@ from research_v2.common import (
     DEFAULT_MODEL,
     DETECTOR_TEMPERATURE,
     VICTIM_TEMPERATURE,
+    TOP_P,
     ResearchDetector,
     ResearchVictim,
     append_jsonl,
@@ -413,6 +414,7 @@ def main():
         "condition_order": "alternated by repetition and case index",
         "detector_temperature": DETECTOR_TEMPERATURE,
         "victim_temperature": VICTIM_TEMPERATURE,
+        "top_p": TOP_P,
         "victim_calls": len(cases) * args.repetitions,
         "detector_calls": len(cases) * args.repetitions * 2,
         "design_note": (
