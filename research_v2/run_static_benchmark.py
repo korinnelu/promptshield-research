@@ -88,6 +88,8 @@ def main():
     repetition_path = OUT_DIR / "benchmark_repetition_summary.csv"
     stability_path = OUT_DIR / "benchmark_stability_summary.csv"
     matrix_path = OUT_DIR / "detection_leakage_matrix.csv"
+    paired_path = OUT_DIR / "paired_detector_comparison.csv"
+    leakage_path = OUT_DIR / "victim_leakage_summary.csv"
     metadata_path = OUT_DIR / "experiment_metadata.json"
 
     Path(raw_path).write_text("", encoding="utf-8")
@@ -220,6 +222,107 @@ def main():
         })
     write_csv(matrix_path, matrix_rows)
 
+    # Paired baseline-vs-structured correctness comparison on identical trials.
+    pair_groups = defaultdict(dict)
+    for row in rows:
+        pair_groups[(row["repetition"], row["case_id"])][
+            row["detector_condition"]
+        ] = row
+
+    paired_records = []
+    paired_by_category = defaultdict(lambda: {
+        "both_correct": 0,
+        "baseline_only_correct": 0,
+        "structured_only_correct": 0,
+        "both_wrong": 0,
+        "parse_error_pairs": 0,
+        "n_pairs": 0,
+    })
+
+    for (_, _), pair in pair_groups.items():
+        if "baseline" not in pair or "structured" not in pair:
+            continue
+
+        b = pair["baseline"]
+        s = pair["structured"]
+        category = b["category"]
+        bucket = paired_by_category[category]
+        bucket["n_pairs"] += 1
+
+        if b["parse_error"] or s["parse_error"]:
+            bucket["parse_error_pairs"] += 1
+            outcome = "parse_error_pair"
+        else:
+            b_correct = b["predicted_attack"] == b["actual_attack"]
+            s_correct = s["predicted_attack"] == s["actual_attack"]
+
+            if b_correct and s_correct:
+                bucket["both_correct"] += 1
+                outcome = "both_correct"
+            elif b_correct and not s_correct:
+                bucket["baseline_only_correct"] += 1
+                outcome = "baseline_only_correct"
+            elif not b_correct and s_correct:
+                bucket["structured_only_correct"] += 1
+                outcome = "structured_only_correct"
+            else:
+                bucket["both_wrong"] += 1
+                outcome = "both_wrong"
+
+        paired_records.append({
+            "repetition": b["repetition"],
+            "case_id": b["case_id"],
+            "category": category,
+            "outcome": outcome,
+        })
+
+    paired_summary = []
+    for category in ("benign", "direct", "covert"):
+        paired_summary.append({
+            "category": category,
+            **paired_by_category[category],
+        })
+
+    # Add an overall row.
+    overall_pair = {
+        "category": "overall",
+        "both_correct": sum(r["both_correct"] for r in paired_summary),
+        "baseline_only_correct": sum(r["baseline_only_correct"] for r in paired_summary),
+        "structured_only_correct": sum(r["structured_only_correct"] for r in paired_summary),
+        "both_wrong": sum(r["both_wrong"] for r in paired_summary),
+        "parse_error_pairs": sum(r["parse_error_pairs"] for r in paired_summary),
+        "n_pairs": sum(r["n_pairs"] for r in paired_summary),
+    }
+    paired_summary.append(overall_pair)
+    write_csv(paired_path, paired_summary)
+
+    # Victim leakage is independent of detector condition. Use one copy of each
+    # paired trial to avoid double-counting the same victim response.
+    victim_rows = [
+        r for r in rows
+        if r["detector_condition"] == "baseline"
+    ]
+    leakage_summary = []
+    for category in ("direct", "covert"):
+        group = [r for r in victim_rows if r["category"] == category]
+        leaked = sum(1 for r in group if r["victim_leaked"])
+        leakage_summary.append({
+            "category": category,
+            "leaked": leaked,
+            "total": len(group),
+            "leakage_rate": leaked / len(group) if group else 0.0,
+        })
+
+    attack_group = [r for r in victim_rows if r["actual_attack"]]
+    attack_leaked = sum(1 for r in attack_group if r["victim_leaked"])
+    leakage_summary.append({
+        "category": "all_attacks",
+        "leaked": attack_leaked,
+        "total": len(attack_group),
+        "leakage_rate": attack_leaked / len(attack_group) if attack_group else 0.0,
+    })
+    write_csv(leakage_path, leakage_summary)
+
     metadata = {
         "generated_at": utc_now(),
         "git_commit_sha": get_git_sha(),
@@ -252,6 +355,8 @@ def main():
     print(f"Saved repetition summary to {repetition_path}")
     print(f"Saved stability summary to {stability_path}")
     print(f"Saved detection/leakage matrix to {matrix_path}")
+    print(f"Saved paired detector comparison to {paired_path}")
+    print(f"Saved victim leakage summary to {leakage_path}")
     print(f"Saved metadata to {metadata_path}")
 
 
