@@ -70,6 +70,8 @@ Seed Attack → Detector Feedback → Red-Team Rewrite → Next Round
 
 **Research V2 的重點不是增加功能，而是重新設計評估方法。**
 
+模型版本也必須誠實區分：原始 PoC 使用 NVIDIA NIM Llama 3.3 70B；因 hosted endpoint 已停止提供，Research V2 改用 **NVIDIA Nemotron 3 Super 120B-A12B**。因此新結果視為一組新的 empirical evaluation，不把兩個 model generation 的絕對分數直接當成前後提升。
+
 ---
 
 # PAGE 2 — 實驗設計與結果
