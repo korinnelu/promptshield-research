@@ -293,3 +293,20 @@ That demonstrates:
 - ability to turn engineering work into a researchable question.
 
 This is the intended role of Research V2.
+
+
+## Model availability change before official Research V2 run
+
+The original course PoC used `meta/llama-3.3-70b-instruct` through NVIDIA NIM.
+
+Before the official Research V2 run, that hosted endpoint became unavailable. Research V2 therefore migrates the detector and simulated victim default to:
+
+`nvidia/nemotron-3-super-120b-a12b`
+
+Methodological consequence:
+
+- Research V2 is **not** a same-model replication of the original 15-case PoC;
+- old and new absolute F1 / recall / leakage values must not be interpreted as a clean longitudinal improvement;
+- the old Llama 3.3 results remain preliminary historical evidence;
+- the new benchmark should be interpreted internally across its own fixed detector conditions, attack categories, repetitions, and victim outcomes;
+- exact model IDs and sampling parameters must be disclosed with all Research V2 results.
