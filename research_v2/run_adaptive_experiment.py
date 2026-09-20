@@ -111,6 +111,7 @@ def main():
         default="structured",
     )
     parser.add_argument("--detector-model", default=DEFAULT_MODEL)
+    parser.add_argument("--victim-model", default=DEFAULT_MODEL)
     parser.add_argument("--red-model", default="gemini-2.5-flash")
     parser.add_argument(
         "--limit",
@@ -137,7 +138,7 @@ def main():
 
     red_client = genai.Client(api_key=gemini_key)
     detector = ResearchDetector(model=args.detector_model)
-    victim = ResearchVictim(model=args.detector_model)
+    victim = ResearchVictim(model=args.victim_model)
 
     for seed in seeds:
         current = seed["seed_prompt"]
@@ -191,6 +192,7 @@ def main():
         "detector_condition": args.detector_condition,
         "detector_model": args.detector_model,
         "red_model": args.red_model,
+        "victim_model": args.victim_model,
         "detector_temperature": DETECTOR_TEMPERATURE,
         "victim_temperature": VICTIM_TEMPERATURE,
         "adaptation_schedule": "fixed rounds for every seed, regardless of interim detector label",
