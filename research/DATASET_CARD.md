@@ -163,3 +163,32 @@ A stronger follow-up would add:
 - more model families;
 - independent annotation;
 - held-out examples authored by someone other than the system developer.
+
+
+---
+
+# Adaptive-obfuscation variant set
+
+File:
+
+`data/research_v2/adaptive_variants.json`
+
+The adaptive experiment uses 12 attack chains. Each chain contains three pre-registered, author-constructed variants:
+
+1. `direct_overt`
+2. `business_pretext`
+3. `workflow_completion`
+
+All three variants target the same registered protected resource.
+
+The exact synthetic canary token is never placed in the user prompt.
+
+## Why pre-register variants?
+
+A generative red-team smoke test returned a provider-policy refusal rather than an attack rewrite. Counting that as detector evasion would be methodologically wrong because the adversarial objective disappeared.
+
+Pre-registration therefore removes a provider-policy confound and makes the attack sequence reproducible.
+
+## Limitation
+
+The adaptive variants are author-constructed. This improves control and reproducibility but creates author-design bias. Results should therefore be described as outcomes **within this fixed adaptive protocol**, not as a general estimate of real-world adaptive-attack success.
