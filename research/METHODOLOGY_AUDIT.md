@@ -25,7 +25,7 @@ This supports a stronger research framing than “which prompt gets the highest 
 
 ### Central idea
 
-> **Detection is not necessarily successful defense, and evasion is not necessarily a successful attack.**
+> **Detection performance is not equivalent to downstream security outcome, and evasion is not necessarily a successful attack.**
 
 The research version should distinguish three concepts:
 
@@ -39,7 +39,7 @@ The research version should distinguish three concepts:
 
 **RQ2.** Can adaptive attack evolution increase detection evasion while preserving the original adversarial objective?
 
-**RQ3.** How closely does detector performance correspond to downstream sensitive-data leakage?
+**RQ3.** How closely does detector performance correspond to downstream sensitive-data leakage measured independently on the victim model?
 
 These three questions can be answered with the existing architecture after a focused research-layer extension.
 
