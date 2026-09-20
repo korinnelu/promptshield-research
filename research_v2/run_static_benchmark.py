@@ -20,6 +20,8 @@ from pathlib import Path
 
 from research_v2.common import (
     DEFAULT_MODEL,
+    DETECTOR_TEMPERATURE,
+    VICTIM_TEMPERATURE,
     ResearchDetector,
     ResearchVictim,
     append_jsonl,
@@ -169,6 +171,8 @@ def main():
         "repetitions": args.repetitions,
         "detector_conditions": ["baseline", "structured"],
         "model": args.model,
+        "detector_temperature": DETECTOR_TEMPERATURE,
+        "victim_temperature": VICTIM_TEMPERATURE,
         "victim_calls": len(cases) * args.repetitions,
         "detector_calls": len(cases) * args.repetitions * 2,
         "important_note": (
