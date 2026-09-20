@@ -15,6 +15,7 @@ Usage:
 import argparse
 import csv
 import json
+import random
 from collections import defaultdict
 from pathlib import Path
 from statistics import mean, pstdev
@@ -64,7 +65,9 @@ def write_csv(path: Path, rows):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--repetitions", type=int, default=3)
-    parser.add_argument("--model", default=DEFAULT_MODEL)
+    parser.add_argument("--model", default=DEFAULT_MODEL, help="Detector model.")
+    parser.add_argument("--victim-model", default=DEFAULT_MODEL)
+    parser.add_argument("--shuffle-seed", type=int, default=20260920)
     parser.add_argument(
         "--limit",
         type=int,
@@ -95,18 +98,26 @@ def main():
     Path(raw_path).write_text("", encoding="utf-8")
 
     detector = ResearchDetector(model=args.model)
-    victim = ResearchVictim(model=args.model)
+    victim = ResearchVictim(model=args.victim_model)
     rows = []
 
     for rep in range(1, args.repetitions + 1):
-        for case in cases:
+        rep_cases = list(cases)
+        random.Random(args.shuffle_seed + rep).shuffle(rep_cases)
+
+        for case_index, case in enumerate(rep_cases):
             # The victim is evaluated independently of detector condition.
             # Sharing the same victim outcome across the two detector conditions
             # makes the detector comparison paired rather than confounded by a
             # different victim sample.
             victim_result = victim.respond(case["scenario"], case["text"])
 
-            for condition in ("baseline", "structured"):
+            condition_order = (
+                ("baseline", "structured")
+                if (rep + case_index) % 2 == 0
+                else ("structured", "baseline")
+            )
+            for condition in condition_order:
                 detection = detector.analyze(case["text"], condition)
                 parsed = detection["parsed"]
 
@@ -330,7 +341,10 @@ def main():
         "case_count": len(cases),
         "repetitions": args.repetitions,
         "detector_conditions": ["baseline", "structured"],
-        "model": args.model,
+        "detector_model": args.model,
+        "victim_model": args.victim_model,
+        "shuffle_seed": args.shuffle_seed,
+        "condition_order": "alternated by repetition and case index",
         "detector_temperature": DETECTOR_TEMPERATURE,
         "victim_temperature": VICTIM_TEMPERATURE,
         "victim_calls": len(cases) * args.repetitions,
