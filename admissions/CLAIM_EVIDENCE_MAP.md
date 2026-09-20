@@ -62,12 +62,15 @@ Required evidence:
 
 ### Example D
 
-> Adaptive detector evasion often lost the original malicious objective.
+> Adaptive detector evasion did or did not preserve the original malicious objective.
 
 Required evidence:
-- manually coded `adaptive_coded.jsonl`;
+- pre-registered `adaptive_variants.json`;
+- manually coded objective-preservation labels;
 - objective-preservation rubric;
 - `adaptive_summary.csv`.
+
+The prior Gemini smoke-test refusal must not be counted as evasion because it destroyed the objective.
 
 ### Example E
 
