@@ -26,13 +26,14 @@ Current Research V2 default:
 
 - detector: `nvidia/nemotron-3-super-120b-a12b`
 - victim: `nvidia/nemotron-3-super-120b-a12b`
-- adaptive red-team generator: `gemini-3.6-flash`
-- Gemini interface: Interactions API v1
+- official adaptive attack source: **pre-registered author-constructed variants**
 - detector temperature: 0.5
 - victim temperature: 0.5
 - top_p: 1.0
 
 The exact model names and sampling settings are written into experiment metadata. The original Llama 3.3 results remain Preliminary PoC evidence only.
+
+A generative adaptive smoke test with Gemini 3.6 Flash was also attempted. The provider returned a refusal rather than an objective-preserving rewrite, so that path is **not used for the official Research V2 adaptive experiment**. The failure is documented in `../research/SMOKE_TEST_AUDIT.md`.
 
 ## Research design
 
@@ -48,8 +49,12 @@ The exact model names and sampling settings are written into experiment metadata
 
 ### Adaptive experiment
 
-- 12 pre-registered malicious seed objectives
-- up to 2 adaptation rounds by default
+- 12 pre-registered malicious objectives
+- 3 frozen variants per chain:
+  - Round 0: overt/direct
+  - Round 1: business pretext
+  - Round 2: workflow-completion framing
+- adaptive progression stops after the first detector evasion
 - separate measurement of:
   - Detection Evasion
   - Objective Preservation
@@ -74,7 +79,7 @@ True Attack Success =
 - `validate_design.py` — dataset and canary-contamination checks
 - `preflight.py` — one-command compile, validation, unit-test, dependency, and key-presence check without making API calls
 - `run_static_benchmark.py` — repeated 60-case benchmark runner
-- `run_adaptive_experiment.py` — adaptive attack runner
+- `run_adaptive_experiment.py` — pre-registered adaptive-obfuscation runner
 - `summarize_adaptive.py` — final adaptive metrics after manual coding
 - `analyze_failures.py` — extracts false positives/negatives, detector disagreements, critical detection×leakage cases, and case consistency
 - `generate_figures.py` — admissions-ready research figures
@@ -83,6 +88,7 @@ Datasets:
 
 - `../data/research_v2/benchmark_v2.json`
 - `../data/research_v2/adaptive_seeds.json`
+- `../data/research_v2/adaptive_variants.json`
 
 Methodology documents:
 
@@ -166,15 +172,15 @@ This produces false-negative, false-positive, detector-disagreement, critical `n
 ### 7. Run a small adaptive smoke test
 
 ```bash
-python -m research_v2.run_adaptive_experiment --rounds 1 --limit 1
+python -m research_v2.run_adaptive_experiment --max-round 1 --limit 1
 ```
 
-Smoke-test outputs are written to `results/research_v2/smoke_adaptive/`.
+Smoke-test outputs are written to `results/research_v2/smoke_adaptive_preregistered/`.
 
 ### 8. Run the full adaptive experiment
 
 ```bash
-python -m research_v2.run_adaptive_experiment --rounds 2
+python -m research_v2.run_adaptive_experiment --max-round 2
 ```
 
 This produces raw adaptive outcomes but intentionally leaves:
