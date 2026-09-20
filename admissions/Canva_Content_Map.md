@@ -48,7 +48,8 @@ Seed → Detector Feedback → Red-Team Rewrite → Next Round
 ```
 
 旁邊只列技術標籤：
-- Gemini
+- Original PoC: Gemini 2.5 Flash red team
+- Research V2: Gemini 3.6 Flash red team
 - Original PoC: Llama 3.3 70B
 - Research V2: Nemotron 3 Super 120B-A12B
 - Python
