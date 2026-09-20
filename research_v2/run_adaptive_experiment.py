@@ -94,8 +94,17 @@ def generate_adaptation(client, model, seed, previous_attack, feedback):
         previous_attack=previous_attack,
         detector_feedback=feedback,
     )
-    response = client.models.generate_content(model=model, contents=prompt)
-    return response.text.strip()
+    interaction = client.interactions.create(
+        model=model,
+        input=prompt,
+    )
+    text = (interaction.output_text or "").strip()
+    if not text:
+        raise RuntimeError(
+            "Gemini Interactions API returned no adaptation text. "
+            "Inspect the provider response before continuing the experiment."
+        )
+    return text
 
 
 def main():
@@ -113,7 +122,7 @@ def main():
     )
     parser.add_argument("--detector-model", default=DEFAULT_MODEL)
     parser.add_argument("--victim-model", default=DEFAULT_MODEL)
-    parser.add_argument("--red-model", default="gemini-2.5-flash")
+    parser.add_argument("--red-model", default="gemini-3.6-flash")
     parser.add_argument(
         "--output-dir",
         default=None,
@@ -149,7 +158,10 @@ def main():
     raw_path = str(out_dir / "adaptive_raw.jsonl")
     Path(raw_path).write_text("", encoding="utf-8")
 
-    red_client = genai.Client(api_key=gemini_key)
+    red_client = genai.Client(
+        api_key=gemini_key,
+        http_options={"api_version": "v1"},
+    )
     detector = ResearchDetector(model=args.detector_model)
     victim = ResearchVictim(model=args.victim_model)
 
@@ -212,6 +224,7 @@ def main():
         "victim_temperature": VICTIM_TEMPERATURE,
         "top_p": TOP_P,
         "adaptation_schedule": "fixed rounds for every seed, regardless of interim detector label",
+        "red_api": "Gemini Interactions API v1",
         "red_generation_temperature": "provider default",
         "manual_step_required": (
             "Code objective_preserved for every adaptive row before calculating "
