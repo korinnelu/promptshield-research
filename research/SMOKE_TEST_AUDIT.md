@@ -248,3 +248,22 @@ The official Research V2 execution configuration is now considered **smoke-valid
 The benchmark, adaptive variants, detector prompt conditions, model IDs, sampling settings, output schema, and evaluation rules should now be treated as frozen for the official run.
 
 No wording, labels, prompt conditions, or model-call settings should be changed after official results are observed.
+
+
+---
+
+## 8. Execution-reliability patch after provider HTTP 503
+
+The first official static-run attempt encountered an NVIDIA hosted-endpoint response:
+
+`HTTP 503 — Service temporarily overloaded`
+
+This is an infrastructure availability event rather than an experimental result.
+
+To prevent transient provider outages from discarding completed observations, Research V2 adds:
+
+- bounded retry for transient HTTP and network errors;
+- immediate JSONL checkpointing;
+- resumable static and adaptive runners.
+
+No research input, model setting, prompt, benchmark label, adaptive variant, or metric definition was changed. The frozen experimental protocol remains intact.
