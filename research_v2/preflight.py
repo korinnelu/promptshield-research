@@ -12,6 +12,7 @@ import compileall
 import os
 import subprocess
 import sys
+from importlib.metadata import PackageNotFoundError, version
 
 from research_v2.validate_design import main as validate_design
 
@@ -38,8 +39,26 @@ def check_imports():
         raise RuntimeError(
             "Missing runtime dependencies: "
             + ", ".join(missing)
-            + ". Run: pip install -r requirements.txt"
+            + ". Run: pip install -U -r requirements.txt"
         )
+
+    try:
+        google_genai_version = version("google-genai")
+    except PackageNotFoundError:
+        raise RuntimeError(
+            "google-genai is not installed. Run: pip install -U -r requirements.txt"
+        )
+
+    parts = google_genai_version.split(".")
+    major = int(parts[0]) if parts and parts[0].isdigit() else 0
+    minor = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 0
+    if (major, minor) < (2, 24):
+        raise RuntimeError(
+            f"google-genai {google_genai_version} is too old for this Research V2 "
+            "Interactions API workflow. Run: pip install -U -r requirements.txt"
+        )
+
+    print(f"  google-genai: {google_genai_version}")
 
 
 def check_keys(require_keys: bool):
