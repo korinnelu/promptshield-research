@@ -12,7 +12,7 @@ Short admissions subtitle:
 
 - **RQ1:** How does attack obfuscation affect LLM-based prompt-injection detection?
 - **RQ2:** Can adaptive attacks evade detection while preserving their original malicious objective?
-- **RQ3:** Does successful attack detection reliably predict prevention of downstream data leakage?
+- **RQ3:** How closely does detector performance correspond to downstream sensitive-data leakage?
 
 ## Independent variables
 
