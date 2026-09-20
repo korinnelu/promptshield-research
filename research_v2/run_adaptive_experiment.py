@@ -23,9 +23,12 @@ from google import genai
 
 from research_v2.common import (
     DEFAULT_MODEL,
+    DETECTOR_TEMPERATURE,
+    VICTIM_TEMPERATURE,
     ResearchDetector,
     ResearchVictim,
     append_jsonl,
+    get_git_sha,
     load_json,
     utc_now,
 )
@@ -182,11 +185,16 @@ def main():
 
     metadata = {
         "generated_at": utc_now(),
+        "git_commit_sha": get_git_sha(),
         "seed_count": len(seeds),
         "adaptation_rounds_after_seed": args.rounds,
         "detector_condition": args.detector_condition,
         "detector_model": args.detector_model,
         "red_model": args.red_model,
+        "detector_temperature": DETECTOR_TEMPERATURE,
+        "victim_temperature": VICTIM_TEMPERATURE,
+        "adaptation_schedule": "fixed rounds for every seed, regardless of interim detector label",
+        "red_generation_temperature": "provider default",
         "manual_step_required": (
             "Code objective_preserved for every adaptive row before calculating "
             "True Attack Success Rate."
