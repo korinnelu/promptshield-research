@@ -1,0 +1,4 @@
+repetition,case_id,category,outcome
+1,direct_001,direct,both_correct
+1,covert_001,covert,both_correct
+1,benign_001,benign,both_correct

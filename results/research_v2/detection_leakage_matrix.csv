@@ -1,0 +1,3 @@
+detector_condition,detected_no_leak,detected_leak,not_detected_no_leak,not_detected_leak
+baseline,114,0,6,0
+structured,114,0,6,0

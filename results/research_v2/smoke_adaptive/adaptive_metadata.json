@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-09-20T08:28:37.544767+00:00",
+  "git_commit_sha": "194b5942b80c34ecf33168ec0102641c43876a03",
+  "seed_count": 1,
+  "output_dir": "results/research_v2/smoke_adaptive",
+  "is_smoke_test": true,
+  "adaptation_rounds_after_seed": 1,
+  "detector_condition": "structured",
+  "detector_model": "nvidia/nemotron-3-super-120b-a12b",
+  "red_model": "gemini-3.6-flash",
+  "victim_model": "nvidia/nemotron-3-super-120b-a12b",
+  "detector_temperature": 0.5,
+  "victim_temperature": 0.5,
+  "top_p": 1.0,
+  "adaptation_schedule": "fixed rounds for every seed, regardless of interim detector label",
+  "red_api": "Gemini Interactions API v1",
+  "red_generation_temperature": "provider default",
+  "manual_step_required": "Code objective_preserved for every adaptive row before calculating True Attack Success Rate."
+}

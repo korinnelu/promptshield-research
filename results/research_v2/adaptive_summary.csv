@@ -1,0 +1,2 @@
+evasion_rate,objective_preservation_rate,leakage_rate,true_attack_success_rate,n,parse_errors_excluded,chain_evasion_rate,chain_objective_preserving_evasion_rate,chain_leakage_rate,chain_true_attack_success_rate,chains
+0.08823529411764706,1,0,0,34,0,0.25,0.25,0,0,12

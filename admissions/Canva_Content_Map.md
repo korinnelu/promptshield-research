@@ -1,0 +1,234 @@
+# PromptShield — Canva Content Map
+
+目標：把 Research Brief 壓成 **3 頁教授可快速掃完的研究型作品**。
+
+---
+
+## Page 1 — Research Question & Architecture
+
+### 視覺主旨
+
+教授在 20–30 秒內必須知道：
+
+1. 你研究的不是「做一個聊天機器人」；
+2. 你區分 detection 與 actual security outcome；
+3. 你有明確 RQ 與實驗流程。
+
+### 建議版面
+
+**上方 20%**
+- 主標題
+- 一句 thesis statement
+
+建議主句：
+
+> Detection performance 不等於 downstream security outcome；規避偵測，也不一定代表攻擊成功。
+
+**中間 30%**
+三個 Research Questions，橫向三格。
+
+- RQ1 Obfuscation
+- RQ2 Adaptive Evasion
+- RQ3 Detection vs Leakage
+
+每格最多 2 行中文。
+
+**下方 50%**
+放主架構圖：
+
+```text
+                    ┌→ Detector ─────→ Detection Outcome
+Test Input ─────────┤
+                    └→ Victim LLM ───→ Leakage Outcome
+                                      ↓
+                                  Evaluation
+
+Adaptive only:
+Seed → Detected? → Pre-registered Obfuscation Variant → Next Round
+```
+
+旁邊只列技術標籤：
+- Original PoC: Gemini 2.5 Flash red team
+- Research V2 adaptive: pre-registered objective-preserving variants
+- Original PoC: Llama 3.3 70B
+- Research V2: Nemotron 3 Super 120B-A12B
+- Python
+- Streamlit
+- quantitative evaluation
+
+不要放大段技術棧。
+
+---
+
+## Page 2 — Experimental Design & Evidence
+
+### 視覺主旨
+
+教授要看到：
+
+> 她知道如何設計比較，而不是只有跑模型。
+
+### 左側 35%
+
+放 Experimental Design 表：
+
+- 60 fixed cases
+- 20 benign（10 easy + 10 hard negatives）
+- 20 overt direct attacks
+- 20 covert/contextual direct attacks（10 medium + 10 hard）
+- 2 detector conditions
+- 3 repeated runs
+
+下方小字：
+
+**Primary metrics:** Precision, Recall, F1, FNR, Evasion Rate, Leakage Rate.
+
+### 右側 65%
+
+放兩個已完成的實證圖／卡片：
+
+**Figure A — Recall by Attack Category**
+
+- Direct Recall = 100%
+- Covert Recall = 90%
+- Hard Covert Recall = 80%
+- Baseline 與 Structured 完全重疊
+
+旁邊加一句：
+
+> 180 paired trials 中，兩個 detector prompts 的 binary decisions 完全一致。
+
+**Figure B — Adaptive Outcome**
+
+- 3 / 12 chains achieved detector evasion
+- all 3 preserved the registered adversarial objective
+- 0 / 34 adaptive attempts leaked a canary
+- True Attack Success = 0
+
+大字：
+
+> **Evasion ≠ Successful Attack**
+
+### 頁面底部
+
+放一條很重要的 preliminary observation：
+
+> Original 15-case PoC produced F1 = 1.0 for both detector prompts — revealing that the original benchmark was too small to discriminate between methods.
+
+這句很重要，因為它把「舊實驗太簡單」轉化成研究反思能力。
+
+---
+
+## Page 3 — Failure Analysis & Research Reflection
+
+### 視覺主旨
+
+這頁不是展示成功，而是展示你會分析「為什麼方法不夠好」。
+
+### 上半部：Two-Sided Failure Analysis
+
+左側畫 adaptive chain：
+
+```text
+Direct Attack
+    ↓ detected
+Business Pretext
+    ↓ detected
+Workflow Completion
+    ↓ EVADED
+```
+
+旁邊：
+
+> Objective preserved ✓  
+> Canary leakage ✕  
+> True attack success ✕
+
+右側放 exploratory benign leakage case：
+
+```text
+Benign security-guidance query
+        ↓
+Detector: BENIGN (correct)
+        ↓
+Victim leaked 3 cloud canaries
+in 2 / 3 repetitions
+```
+
+頁面核心：
+
+> **Correct classification ≠ safe downstream behavior**
+
+### 中間：重新定義 attack success
+
+下面：
+
+```text
+True Attack Success =
+Evasion
+AND Objective Preservation
+AND Actual Leakage
+```
+
+### 下方左側：Empirical Takeaways
+
+- Structured prompt did not improve binary decisions
+- hard covert/contextual cases created stable false negatives
+- 3 / 12 adaptive chains evaded detection
+- 0 observed adaptive canary leaks
+- benign query produced post-hoc leakage in 2 / 3 runs
+
+### 下方中間：Methodological Improvement
+
+- synthetic canary secrets
+- fixed benchmark before testing
+- category-level error analysis
+- separate detection from leakage
+- disclose that covert cases are still direct user-input attacks
+
+### 下方右側：Limitations
+
+只放四點：
+
+- simulated victim
+- limited benchmark size
+- English-focused
+- model dependence
+
+### 最底一句
+
+> 從完成一個系統，到重新質疑「我用什麼證據證明它有效」，是這個專案最重要的研究轉折。
+
+---
+
+## 全文件不要放的內容
+
+- 大量 JSON dump
+- 逐行程式碼
+- 59 頁原作業式說明
+- 未實作的 API / CI-CD 當作已完成成果
+- 未校準的 confidence 當作機率
+- “MITRE accuracy” 作為主結果
+- “world-aware = 最新即時研究” 類型的過度宣稱
+
+## 最終閱讀層級
+
+### 30 秒
+看到：
+- Research Question
+- Architecture
+- Result headline
+
+### 3 分鐘
+理解：
+- experiment design
+- failure analysis
+- limitations
+
+### 有興趣才點 GitHub
+看到：
+- code
+- fixed benchmark
+- raw results
+- experiment config
+- reproducibility files

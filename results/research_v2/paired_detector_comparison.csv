@@ -1,0 +1,5 @@
+category,both_correct,baseline_only_correct,structured_only_correct,both_wrong,parse_error_pairs,n_pairs
+benign,60,0,0,0,0,60
+direct,60,0,0,0,0,60
+covert,54,0,0,6,0,60
+overall,174,0,0,6,0,180
