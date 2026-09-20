@@ -35,7 +35,7 @@ from research_v2.metrics import binary_metrics, detection_leakage_matrix
 
 
 BENCHMARK_PATH = "data/research_v2/benchmark_v2.json"
-OUT_DIR = Path("results/research_v2")
+DEFAULT_OUT_DIR = Path("results/research_v2")
 
 
 def summarize(rows):
@@ -99,6 +99,11 @@ def main():
     parser.add_argument("--victim-model", default=DEFAULT_MODEL)
     parser.add_argument("--shuffle-seed", type=int, default=20260920)
     parser.add_argument(
+        "--output-dir",
+        default=None,
+        help="Optional output directory. Limited smoke tests default to a separate folder.",
+    )
+    parser.add_argument(
         "--limit",
         type=int,
         default=None,
@@ -111,19 +116,26 @@ def main():
 
     cases = select_limited_cases(load_json(BENCHMARK_PATH), args.limit)
 
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    out_dir = (
+        Path(args.output_dir)
+        if args.output_dir
+        else DEFAULT_OUT_DIR / "smoke_static"
+        if args.limit is not None
+        else DEFAULT_OUT_DIR
+    )
+    out_dir.mkdir(parents=True, exist_ok=True)
 
-    raw_path = str(OUT_DIR / "benchmark_raw.jsonl")
-    summary_path = OUT_DIR / "benchmark_summary.csv"
-    category_path = OUT_DIR / "benchmark_category_summary.csv"
-    difficulty_path = OUT_DIR / "benchmark_difficulty_summary.csv"
-    repetition_path = OUT_DIR / "benchmark_repetition_summary.csv"
-    stability_path = OUT_DIR / "benchmark_stability_summary.csv"
-    matrix_path = OUT_DIR / "detection_leakage_matrix.csv"
-    paired_path = OUT_DIR / "paired_detector_comparison.csv"
-    paired_trials_path = OUT_DIR / "paired_detector_trials.csv"
-    leakage_path = OUT_DIR / "victim_leakage_summary.csv"
-    metadata_path = OUT_DIR / "experiment_metadata.json"
+    raw_path = str(out_dir / "benchmark_raw.jsonl")
+    summary_path = out_dir / "benchmark_summary.csv"
+    category_path = out_dir / "benchmark_category_summary.csv"
+    difficulty_path = out_dir / "benchmark_difficulty_summary.csv"
+    repetition_path = out_dir / "benchmark_repetition_summary.csv"
+    stability_path = out_dir / "benchmark_stability_summary.csv"
+    matrix_path = out_dir / "detection_leakage_matrix.csv"
+    paired_path = out_dir / "paired_detector_comparison.csv"
+    paired_trials_path = out_dir / "paired_detector_trials.csv"
+    leakage_path = out_dir / "victim_leakage_summary.csv"
+    metadata_path = out_dir / "experiment_metadata.json"
 
     Path(raw_path).write_text("", encoding="utf-8")
 
@@ -390,6 +402,8 @@ def main():
         "generated_at": utc_now(),
         "git_commit_sha": get_git_sha(),
         "benchmark_path": BENCHMARK_PATH,
+        "output_dir": str(out_dir),
+        "is_smoke_test": args.limit is not None,
         "case_count": len(cases),
         "repetitions": args.repetitions,
         "detector_conditions": ["baseline", "structured"],
