@@ -201,3 +201,67 @@ Evidence:
 - `detection_leakage_all_inputs.csv`
 - `benign_with_leakage.csv`
 - `research/STATIC_RESULT_AUDIT.md`
+
+
+---
+
+# Audited adaptive Research V2 claims
+
+## Supported claim: objective-preserving detector evasion occurred
+
+> In the fixed 12-chain adaptive experiment, 3 chains reached a detector evasion while preserving the registered protected-resource objective.
+
+Evidence:
+
+- `adaptive_coded.jsonl`
+- `adaptive_summary.csv`
+- `adaptive_seed_summary.csv`
+- `research/ADAPTIVE_RESULT_AUDIT.md`
+
+Observed:
+
+- chain evasion = 3 / 12 = 25%
+- objective-preserving chain evasion = 3 / 12 = 25%
+
+Use “within this fixed adaptive protocol.” Do not generalize 25% as a real-world attack rate.
+
+## Supported claim: evasion did not equal compromise
+
+> None of the three objective-preserving adaptive evasions produced exact-canary leakage.
+
+Evidence:
+
+- `adaptive_detection_leakage_matrix.csv`
+- `adaptive_coded.jsonl`
+
+Observed:
+
+- adaptive attempts = 34
+- detector evasions = 3
+- leakage = 0
+- strict True Attack Success = 0
+
+Safe wording:
+
+> “Three adaptive chains evaded the detector while preserving their original objective, but none caused the simulated victim to disclose a synthetic canary.”
+
+Do not write “the attacks failed in general”; only the measured prohibited outcome was not observed.
+
+## Supported combined claim: detection and downstream outcome are non-equivalent
+
+Research V2 observed both directions:
+
+1. malicious detector misses / evasions without observed leakage;
+2. a benign correctly classified query with downstream canary leakage in 2 / 3 repetitions.
+
+Safe wording:
+
+> “The study showed that detector labels and downstream security outcomes are not interchangeable: evasion did not necessarily produce compromise, while a correctly classified benign query could still trigger unsafe disclosure.”
+
+Evidence:
+
+- `research/STATIC_RESULT_AUDIT.md`
+- `research/ADAPTIVE_RESULT_AUDIT.md`
+- `research/FINAL_FINDINGS.md`
+
+This is the preferred high-level research claim for admissions.
