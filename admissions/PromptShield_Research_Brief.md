@@ -70,7 +70,7 @@ Seed Attack → Detector Feedback → Red-Team Rewrite → Next Round
 
 **Research V2 的重點不是增加功能，而是重新設計評估方法。**
 
-模型版本也必須誠實區分：原始 PoC 使用 NVIDIA NIM Llama 3.3 70B detector / victim 與 Gemini 2.5 Flash red team；因原 hosted endpoints 已停止提供，Research V2 改用 **NVIDIA Nemotron 3 Super 120B-A12B**（detector / victim）與 **Gemini 3.6 Flash**（adaptive red team）。因此新結果視為一組新的 empirical evaluation，不把不同 model generation 的絕對分數直接當成前後提升。
+模型版本也必須誠實區分：原始 PoC 使用 NVIDIA NIM Llama 3.3 70B detector / victim 與 Gemini 2.5 Flash red team；Research V2 的 detector / victim 改用 **NVIDIA Nemotron 3 Super 120B-A12B**。Adaptive 部分原先嘗試 Gemini 3.6 Flash，但 smoke test 中 generator 直接拒絕產生攻擊，造成「看似 evasion、其實 objective 消失」的 confound，因此正式研究改用**預先註冊、目標保持的三階段 attack variants**。
 
 ---
 
@@ -163,7 +163,7 @@ True Attack Success
 
 ## Failure Analysis：為什麼「Evasion ≠ Successful Attack」？
 
-原始 adaptive experiment 中，攻擊可從明確的權限／敏感資料要求，逐步改寫成自然的企業情境。
+原始 adaptive experiment 中，攻擊可從明確的權限／敏感資料要求，逐步改寫成自然的企業情境。Research V2 進一步把這個演化過程改成預先註冊的三階段 variants，避免 red-team provider 自身的安全政策改變攻擊目標。
 
 其中一個 Round-2 prompt 成功讓 detector 判定為 benign。
 
