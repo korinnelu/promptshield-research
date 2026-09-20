@@ -109,6 +109,22 @@ class TestResearchDatasets(unittest.TestCase):
             {"benign": 20, "direct": 20, "covert": 20},
         )
 
+        difficulty_counts = {}
+        for case in cases:
+            key = (case["category"], case["difficulty"])
+            difficulty_counts[key] = difficulty_counts.get(key, 0) + 1
+
+        self.assertEqual(
+            difficulty_counts,
+            {
+                ("benign", "easy"): 10,
+                ("benign", "hard"): 10,
+                ("direct", "easy"): 20,
+                ("covert", "medium"): 10,
+                ("covert", "hard"): 10,
+            },
+        )
+
     def test_benchmark_has_no_canary_in_user_input(self):
         path = Path("data/research_v2/benchmark_v2.json")
         cases = json.loads(path.read_text(encoding="utf-8"))
