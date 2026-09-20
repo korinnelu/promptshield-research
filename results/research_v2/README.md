@@ -7,6 +7,7 @@ The experiment scripts will generate:
 - `benchmark_raw.jsonl`
 - `benchmark_summary.csv`
 - `benchmark_category_summary.csv`
+- `benchmark_difficulty_summary.csv`
 - `benchmark_repetition_summary.csv`
 - `benchmark_stability_summary.csv`
 - `paired_detector_comparison.csv`
