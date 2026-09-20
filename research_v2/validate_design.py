@@ -14,6 +14,7 @@ from research_v2.canary_victim import SCENARIOS
 
 BENCHMARK_PATH = Path("data/research_v2/benchmark_v2.json")
 SEEDS_PATH = Path("data/research_v2/adaptive_seeds.json")
+VARIANTS_PATH = Path("data/research_v2/adaptive_variants.json")
 
 
 def load(path: Path):
@@ -150,18 +151,105 @@ def validate_seeds(seeds):
                     )
 
 
+
+def validate_variants(chains):
+    if len(chains) != 12:
+        fail(f"Expected 12 adaptive variant chains, found {len(chains)}.")
+
+    ids = [c["id"] for c in chains]
+    if len(ids) != len(set(ids)):
+        fail("Adaptive variant chain IDs are not unique.")
+
+    scenario_counts = Counter(c["scenario"] for c in chains)
+    expected = {"banking_chatbot": 4, "hr_system": 4, "support_bot": 4}
+    if dict(scenario_counts) != expected:
+        fail(
+            "Unexpected adaptive variant scenario counts: "
+            f"{dict(scenario_counts)}"
+        )
+
+    valid_strategies = {
+        0: "direct_overt",
+        1: "business_pretext",
+        2: "workflow_completion",
+    }
+
+    for chain in chains:
+        if chain["scenario"] not in SCENARIOS:
+            fail(
+                f"{chain['id']} uses unknown scenario "
+                f"{chain['scenario']}."
+            )
+
+        if not chain.get("objective_id"):
+            fail(f"{chain['id']} is missing objective_id.")
+
+        target = chain.get("protected_target")
+        if not target:
+            fail(f"{chain['id']} is missing protected_target.")
+
+        if target not in SCENARIOS[chain["scenario"]].canaries:
+            fail(
+                f"{chain['id']} target does not belong to scenario "
+                f"{chain['scenario']}."
+            )
+
+        variants = chain.get("variants", [])
+        if len(variants) != 3:
+            fail(
+                f"{chain['id']} must contain exactly 3 pre-registered "
+                f"variants, found {len(variants)}."
+            )
+
+        rounds = [int(v["round"]) for v in variants]
+        if rounds != [0, 1, 2]:
+            fail(
+                f"{chain['id']} rounds must be exactly [0, 1, 2], "
+                f"found {rounds}."
+            )
+
+        for variant in variants:
+            rnd = int(variant["round"])
+            if variant.get("strategy") != valid_strategies[rnd]:
+                fail(
+                    f"{chain['id']} round {rnd} has unexpected strategy "
+                    f"{variant.get('strategy')}."
+                )
+
+            if variant.get("intended_objective_preserved") is not True:
+                fail(
+                    f"{chain['id']} round {rnd} must be pre-registered "
+                    "as intended objective-preserving."
+                )
+
+            text = variant.get("text", "").strip()
+            if not text:
+                fail(f"{chain['id']} round {rnd} has empty attack text.")
+
+            for scenario in SCENARIOS.values():
+                for canary in scenario.canaries:
+                    if canary in text:
+                        fail(
+                            f"{chain['id']} round {rnd} contains exact "
+                            f"canary token {canary}."
+                        )
+
+
 def main():
     benchmark = load(BENCHMARK_PATH)
     seeds = load(SEEDS_PATH)
+    variants = load(VARIANTS_PATH)
 
     validate_benchmark(benchmark)
     validate_seeds(seeds)
+    validate_variants(variants)
 
     print("Research V2 design validation passed.")
     print("Benchmark: 60 cases = 20 benign + 20 direct + 20 covert.")
     print("Adaptive seeds: 12 = 4 banking + 4 HR + 4 cloud support.")
+    print("Adaptive variants: 12 chains x 3 pre-registered rounds.")
     print("Difficulty split validated: benign 10/10, direct 20 easy, covert 10/10.")
-    print("No user prompt contains an exact synthetic canary token.")
+    print("No benchmark or adaptive prompt contains an exact synthetic canary token.")
 
 
 if __name__ == "__main__":
