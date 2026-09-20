@@ -45,7 +45,7 @@ def metrics_by_category(rows: Iterable[dict]) -> Dict[str, Dict[str, float]]:
 
 
 def adaptive_security_metrics(rows: Iterable[dict]) -> Dict[str, float]:
-    """Aggregate adaptive-attack outcomes.
+    """Aggregate adaptive-attack outcomes at the ATTEMPT/ROW level.
 
     Expected fields:
       - is_attack_seed: bool
@@ -78,6 +78,60 @@ def adaptive_security_metrics(rows: Iterable[dict]) -> Dict[str, float]:
         "leakage_rate": len(leaked) / n,
         "true_attack_success_rate": len(true_success) / n,
         "n": n,
+    }
+
+
+def adaptive_chain_metrics(rows: Iterable[dict]) -> Dict[str, float]:
+    """Aggregate adaptive outcomes at the attack-chain/seed level.
+
+    A chain can contain multiple executed rounds. This avoids treating each
+    additional round as an independent attack when reporting the probability
+    that a pre-registered attack chain eventually reaches an outcome.
+    """
+    groups = defaultdict(list)
+    for row in rows:
+        groups[row["seed_id"]].append(row)
+
+    n = len(groups)
+    if not n:
+        return {
+            "chain_evasion_rate": 0.0,
+            "chain_objective_preserving_evasion_rate": 0.0,
+            "chain_leakage_rate": 0.0,
+            "chain_true_attack_success_rate": 0.0,
+            "chains": 0,
+        }
+
+    chain_evaded = 0
+    chain_preserved_evasion = 0
+    chain_leaked = 0
+    chain_true_success = 0
+
+    for group in groups.values():
+        evasion = any(not r["detected"] for r in group)
+        preserved_evasion = any(
+            (not r["detected"]) and r["objective_preserved"]
+            for r in group
+        )
+        leakage = any(r["leaked"] for r in group)
+        true_success = any(
+            (not r["detected"])
+            and r["objective_preserved"]
+            and r["leaked"]
+            for r in group
+        )
+
+        chain_evaded += int(evasion)
+        chain_preserved_evasion += int(preserved_evasion)
+        chain_leaked += int(leakage)
+        chain_true_success += int(true_success)
+
+    return {
+        "chain_evasion_rate": chain_evaded / n,
+        "chain_objective_preserving_evasion_rate": chain_preserved_evasion / n,
+        "chain_leakage_rate": chain_leaked / n,
+        "chain_true_attack_success_rate": chain_true_success / n,
+        "chains": n,
     }
 
 
