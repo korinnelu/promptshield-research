@@ -54,6 +54,7 @@ True Attack Success =
 - `metrics.py` — detection and security-outcome metrics
 - `common.py` — model wrappers, parsing, logging helpers
 - `validate_design.py` — dataset and canary-contamination checks
+- `preflight.py` — one-command compile, validation, unit-test, dependency, and key-presence check without making API calls
 - `run_static_benchmark.py` — repeated 60-case benchmark runner
 - `run_adaptive_experiment.py` — adaptive attack runner
 - `summarize_adaptive.py` — final adaptive metrics after manual coding
@@ -88,16 +89,20 @@ NVIDIA_API_KEY=...
 GEMINI_API_KEY=...
 ```
 
-### 3. Validate the fixed design
+### 3. Run local preflight
 
 ```bash
-python -m research_v2.validate_design
+python -m research_v2.preflight --require-keys
 ```
 
-Expected design:
+This performs Python compilation, dataset validation, unit tests, dependency checks, and API-key presence checks. It does **not** make any model API calls and does not print secret values.
+
+Expected design includes:
 
 ```text
 60 benchmark cases = 20 benign + 20 direct + 20 covert
+benign = 10 easy + 10 hard negatives
+covert = 10 medium + 10 hard
 12 adaptive seeds = 4 banking + 4 HR + 4 cloud support
 no user prompt contains an exact synthetic canary
 ```
