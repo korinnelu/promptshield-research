@@ -39,3 +39,41 @@ def validate_detection_payload(payload: Optional[dict]) -> Optional[dict]:
             return None
 
     return payload
+
+
+DETECTION_JSON_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "is_attack": {"type": "boolean"},
+        "attack_type": {
+            "type": "string",
+            "enum": [
+                "direct_injection",
+                "indirect_injection",
+                "jailbreak",
+                "persona_hijack",
+                "privilege_escalation",
+                "social_engineering",
+                "none",
+            ],
+        },
+        "confidence": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+        },
+        "severity": {
+            "type": "string",
+            "enum": ["critical", "high", "medium", "low", "none"],
+        },
+        "explanation": {"type": "string"},
+    },
+    "required": [
+        "is_attack",
+        "attack_type",
+        "confidence",
+        "severity",
+        "explanation",
+    ],
+    "additionalProperties": False,
+}
