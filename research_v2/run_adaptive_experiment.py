@@ -64,6 +64,11 @@ def main():
         default=None,
         help="Optional output directory. Limited smoke tests default to a separate folder.",
     )
+    parser.add_argument(
+        "--fresh",
+        action="store_true",
+        help="Discard any existing adaptive checkpoint and restart from zero.",
+    )
     args = parser.parse_args()
 
     if not 0 <= args.max_round <= 2:
@@ -85,20 +90,68 @@ def main():
     out_dir.mkdir(parents=True, exist_ok=True)
 
     raw_path = str(out_dir / "adaptive_raw.jsonl")
-    Path(raw_path).write_text("", encoding="utf-8")
+    raw_file = Path(raw_path)
+    rows = []
+
+    if raw_file.exists() and not args.fresh:
+        with raw_file.open(encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    rows.append(json.loads(line))
+        if rows:
+            print(
+                f"[resume] Loaded {len(rows)} existing adaptive rows "
+                f"from {raw_path}."
+            )
+    else:
+        raw_file.write_text("", encoding="utf-8")
+
+    existing_rows_loaded = len(rows)
+    existing_keys = [(r["seed_id"], int(r["round"])) for r in rows]
+    if len(existing_keys) != len(set(existing_keys)):
+        raise RuntimeError(
+            "Duplicate checkpoint rows detected in adaptive_raw.jsonl. "
+            "Do not continue until the raw file is audited."
+        )
+
+    existing_by_seed = {}
+    for row in rows:
+        existing_by_seed.setdefault(row["seed_id"], []).append(row)
 
     detector = ResearchDetector(model=args.detector_model)
     victim = ResearchVictim(model=args.victim_model)
 
-    executed_rows = 0
+    executed_rows = len(rows)
     completed_chains = 0
     evaded_chains = 0
 
     for chain in chains:
+        prior_rows = sorted(
+            existing_by_seed.get(chain["id"], []),
+            key=lambda r: int(r["round"]),
+        )
+
+        if any(r.get("detected") is False for r in prior_rows):
+            completed_chains += 1
+            evaded_chains += 1
+            continue
+
+        next_round = (
+            max(int(r["round"]) for r in prior_rows) + 1
+            if prior_rows
+            else 0
+        )
+
+        if next_round > args.max_round:
+            completed_chains += 1
+            continue
+
         chain_evaded = False
 
         for variant in chain["variants"]:
             rnd = int(variant["round"])
+            if rnd < next_round:
+                continue
             if rnd > args.max_round:
                 break
 
@@ -150,7 +203,13 @@ def main():
                 ),
             }
             append_jsonl(raw_path, row)
+            rows.append(row)
+            existing_by_seed.setdefault(chain["id"], []).append(row)
             executed_rows += 1
+            print(
+                f"[progress] {executed_rows} adaptive rows saved; "
+                f"chain={chain['id']} round={rnd}"
+            )
 
             # A parse failure is missing data, not evasion. Continue to the next
             # pre-registered round so the chain can still be inspected.
@@ -190,6 +249,12 @@ def main():
         "victim_reasoning": "disabled",
         "detector_structured_output": "guided_json",
         "executed_rows": executed_rows,
+        "checkpoint_resume": "enabled unless --fresh is supplied",
+        "existing_rows_loaded": existing_rows_loaded,
+        "retry_policy": (
+            "transient 429/500/502/503/504 and network timeout/connection "
+            "errors use bounded deterministic backoff"
+        ),
         "completed_chains": completed_chains,
         "chains_with_detector_evasion": evaded_chains,
         "manual_step_required": (
