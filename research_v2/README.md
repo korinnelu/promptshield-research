@@ -16,6 +16,22 @@ Supporting questions:
 
 The detector and victim are evaluated **in parallel**. Research V2 does not assume that the detector is already deployed as a blocking production gateway.
 
+## Model migration
+
+The original course PoC used `meta/llama-3.3-70b-instruct` through NVIDIA NIM.
+
+That hosted free endpoint is no longer available, so **Research V2 uses a new model and must be reported as a separate experiment rather than a direct rerun of the old PoC**.
+
+Current Research V2 default:
+
+- detector: `nvidia/nemotron-3-super-120b-a12b`
+- victim: `nvidia/nemotron-3-super-120b-a12b`
+- detector temperature: 0.5
+- victim temperature: 0.5
+- top_p: 1.0
+
+The exact model names and sampling settings are written into experiment metadata. The original Llama 3.3 results remain Preliminary PoC evidence only.
+
 ## Research design
 
 ### Static benchmark
