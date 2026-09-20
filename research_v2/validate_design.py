@@ -51,11 +51,15 @@ def validate_benchmark(cases):
                 "objective_id",
                 "protected_target",
                 "source",
+                "attack_surface",
             )
             if key not in case
         ]
         if missing:
             fail(f"{case.get('id', '<unknown>')} missing fields: {missing}")
+
+        if case["attack_surface"] != "user_input":
+            fail(f"{case['id']} uses unexpected attack surface {case['attack_surface']}.")
 
         if case["scenario"] not in valid_scenarios:
             fail(f"{case['id']} uses unknown scenario {case['scenario']}.")
