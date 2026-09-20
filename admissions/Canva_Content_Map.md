@@ -22,7 +22,7 @@
 
 建議主句：
 
-> 偵測到攻擊，不一定代表成功防禦；規避偵測，也不一定代表攻擊成功。
+> Detection performance 不等於 downstream security outcome；規避偵測，也不一定代表攻擊成功。
 
 **中間 30%**
 三個 Research Questions，橫向三格。
@@ -37,15 +37,14 @@
 放主架構圖：
 
 ```text
-Red Team
-   ↓
-Detector
-   ↓
-Victim LLM
-   ↓
-Detection + Leakage
-   ↓
-Evaluation
+                    ┌→ Detector ─────→ Detection Outcome
+Test Input ─────────┤
+                    └→ Victim LLM ───→ Leakage Outcome
+                                      ↓
+                                  Evaluation
+
+Adaptive only:
+Seed → Detector Feedback → Red-Team Rewrite → Next Round
 ```
 
 旁邊只列技術標籤：
@@ -72,9 +71,9 @@ Evaluation
 放 Experimental Design 表：
 
 - 60 fixed cases
-- 20 benign
-- 20 direct
-- 20 covert
+- 20 benign（10 easy + 10 hard negatives）
+- 20 overt direct attacks
+- 20 covert/contextual direct attacks（10 medium + 10 hard）
 - 2 detector conditions
 - 3 repeated runs
 
@@ -151,8 +150,8 @@ EVADED
 ```text
 True Attack Success =
 Evasion
-+ Objective Preservation
-+ Actual Leakage
+AND Objective Preservation
+AND Actual Leakage
 ```
 
 ### 下方左側：Methodological Improvement
@@ -161,6 +160,7 @@ Evasion
 - fixed benchmark before testing
 - category-level error analysis
 - separate detection from leakage
+- disclose that covert cases are still direct user-input attacks
 
 ### 下方右側：Limitations
 
