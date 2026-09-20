@@ -57,6 +57,7 @@ True Attack Success =
 - `run_static_benchmark.py` — repeated 60-case benchmark runner
 - `run_adaptive_experiment.py` — adaptive attack runner
 - `summarize_adaptive.py` — final adaptive metrics after manual coding
+- `analyze_failures.py` — extracts false positives/negatives, detector disagreements, critical detection×leakage cases, and case consistency
 - `generate_figures.py` — admissions-ready research figures
 
 Datasets:
@@ -120,16 +121,29 @@ This produces:
 - `results/research_v2/benchmark_raw.jsonl`
 - `results/research_v2/benchmark_summary.csv`
 - `results/research_v2/benchmark_category_summary.csv`
+- `results/research_v2/benchmark_repetition_summary.csv`
+- `results/research_v2/benchmark_stability_summary.csv`
+- `results/research_v2/paired_detector_comparison.csv`
+- `results/research_v2/paired_detector_trials.csv`
+- `results/research_v2/victim_leakage_summary.csv`
 - `results/research_v2/detection_leakage_matrix.csv`
 - `results/research_v2/experiment_metadata.json`
 
-### 6. Run a small adaptive smoke test
+### 6. Extract static failure cases
+
+```bash
+python -m research_v2.analyze_failures
+```
+
+This produces false-negative, false-positive, detector-disagreement, critical `not detected + leakage`, and case-consistency tables for interpretation.
+
+### 7. Run a small adaptive smoke test
 
 ```bash
 python -m research_v2.run_adaptive_experiment --rounds 1 --limit 1
 ```
 
-### 7. Run the full adaptive experiment
+### 8. Run the full adaptive experiment
 
 ```bash
 python -m research_v2.run_adaptive_experiment --rounds 2
@@ -141,7 +155,7 @@ This produces raw adaptive outcomes but intentionally leaves:
 "objective_preserved": null
 ```
 
-### 8. Code objective preservation
+### 9. Code objective preservation
 
 Copy:
 
@@ -155,13 +169,13 @@ Then code every row using:
 
 Detector confidence should **not** be used to decide objective preservation.
 
-### 9. Summarize adaptive outcomes
+### 10. Summarize adaptive outcomes
 
 ```bash
 python -m research_v2.summarize_adaptive
 ```
 
-### 10. Generate admissions figures
+### 11. Generate admissions figures
 
 ```bash
 python -m research_v2.generate_figures
