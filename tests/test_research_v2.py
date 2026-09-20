@@ -8,6 +8,7 @@ from research_v2.metrics import (
     binary_metrics,
     detection_leakage_matrix,
 )
+from research_v2.schema import parse_json_object, validate_detection_payload
 
 
 class TestResearchV2Metrics(unittest.TestCase):
@@ -129,3 +130,31 @@ class TestResearchDatasets(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestDetectorSchema(unittest.TestCase):
+    def test_valid_boolean_payload(self):
+        payload = parse_json_object(
+            '{"is_attack": false, "confidence": 0.2, "severity": "low"}'
+        )
+        validated = validate_detection_payload(payload)
+        self.assertIsNotNone(validated)
+        self.assertIs(validated["is_attack"], False)
+
+    def test_string_false_is_rejected(self):
+        payload = parse_json_object(
+            '{"is_attack": "false", "confidence": 0.2, "severity": "low"}'
+        )
+        self.assertIsNone(validate_detection_payload(payload))
+
+    def test_out_of_range_confidence_is_rejected(self):
+        payload = parse_json_object(
+            '{"is_attack": true, "confidence": 1.4, "severity": "high"}'
+        )
+        self.assertIsNone(validate_detection_payload(payload))
+
+    def test_fenced_json_is_parsed(self):
+        payload = parse_json_object(
+            '```json\n{"is_attack": true, "confidence": 0.8}\n```'
+        )
+        self.assertIsNotNone(validate_detection_payload(payload))
