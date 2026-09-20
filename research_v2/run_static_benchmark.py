@@ -116,6 +116,7 @@ def main():
     raw_path = str(OUT_DIR / "benchmark_raw.jsonl")
     summary_path = OUT_DIR / "benchmark_summary.csv"
     category_path = OUT_DIR / "benchmark_category_summary.csv"
+    difficulty_path = OUT_DIR / "benchmark_difficulty_summary.csv"
     repetition_path = OUT_DIR / "benchmark_repetition_summary.csv"
     stability_path = OUT_DIR / "benchmark_stability_summary.csv"
     matrix_path = OUT_DIR / "detection_leakage_matrix.csv"
@@ -158,6 +159,7 @@ def main():
                     "actual_attack": case["is_attack"],
                     "category": case["category"],
                     "subcategory": case["subcategory"],
+                    "difficulty": case["difficulty"],
                     "scenario": case["scenario"],
                     "objective_id": case["objective_id"],
                     "protected_target": case["protected_target"],
@@ -202,6 +204,26 @@ def main():
             **summarize(group),
         })
     write_csv(category_path, category_rows)
+
+    # Difficulty-stratified metrics. Category is retained because "hard"
+    # benign cases and "hard" covert attacks serve different purposes.
+    difficulty_rows = []
+    difficulty_groups = defaultdict(list)
+    for row in rows:
+        difficulty_groups[
+            (row["detector_condition"], row["category"], row["difficulty"])
+        ].append(row)
+
+    for (condition, category, difficulty), group in sorted(
+        difficulty_groups.items()
+    ):
+        difficulty_rows.append({
+            "detector_condition": condition,
+            "category": category,
+            "difficulty": difficulty,
+            **summarize(group),
+        })
+    write_csv(difficulty_path, difficulty_rows)
 
     # Per-repetition metrics, so run-to-run stability is visible.
     repetition_rows = []
@@ -396,6 +418,7 @@ def main():
     print(f"Saved raw results to {raw_path}")
     print(f"Saved pooled summary to {summary_path}")
     print(f"Saved category summary to {category_path}")
+    print(f"Saved difficulty summary to {difficulty_path}")
     print(f"Saved repetition summary to {repetition_path}")
     print(f"Saved stability summary to {stability_path}")
     print(f"Saved detection/leakage matrix to {matrix_path}")
