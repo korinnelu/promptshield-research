@@ -112,26 +112,24 @@ def plot_adaptive_funnel():
         return
 
     row = read_csv(path)[0]
-    n = int(float(row["n"]))
-    evaded = round(float(row["evasion_rate"]) * n)
-    preserved = round(float(row["objective_preservation_rate"]) * n)
-    leaked = round(float(row["leakage_rate"]) * n)
-    success = round(float(row["true_attack_success_rate"]) * n)
-
     labels = [
-        "Adaptive attempts",
-        "Detection evasions",
-        "Objective preserved",
-        "Leakage observed",
-        "True attack success",
+        "Evasion",
+        "Objective\npreserved",
+        "Leakage",
+        "True attack\nsuccess",
     ]
-    values = [n, evaded, preserved, leaked, success]
+    values = [
+        float(row["evasion_rate"]),
+        float(row["objective_preservation_rate"]),
+        float(row["leakage_rate"]),
+        float(row["true_attack_success_rate"]),
+    ]
 
     fig, ax = plt.subplots(figsize=(7, 4.5))
     ax.bar(labels, values)
-    ax.set_ylabel("Count")
-    ax.set_title("Adaptive Attack Outcomes")
-    ax.tick_params(axis="x", rotation=20)
+    ax.set_ylim(0, 1.05)
+    ax.set_ylabel("Rate")
+    ax.set_title("Adaptive Attack Outcome Rates")
     fig.tight_layout()
     fig.savefig(FIG_DIR / "adaptive_outcomes.png", dpi=220)
     plt.close(fig)
