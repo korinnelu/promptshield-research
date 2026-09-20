@@ -43,6 +43,9 @@ def check_imports():
 
 
 def check_keys(require_keys: bool):
+    from dotenv import load_dotenv
+
+    load_dotenv()
     names = ["NVIDIA_API_KEY", "GEMINI_API_KEY"]
     present = {name: bool(os.getenv(name)) for name in names}
 
