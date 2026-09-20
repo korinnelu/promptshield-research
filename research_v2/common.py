@@ -65,26 +65,28 @@ def call_with_retry(fn, label: str):
     for attempt in range(1, max_attempts + 1):
         try:
             return fn()
-        except (APIConnectionError, APITimeoutError) as exc:
-            retryable = True
-            status_code = None
-        except APIStatusError as exc:
+        except (APIConnectionError, APITimeoutError, APIStatusError) as exc:
             status_code = getattr(exc, "status_code", None)
-            retryable = status_code in RETRYABLE_STATUS_CODES
+            retryable = (
+                isinstance(exc, (APIConnectionError, APITimeoutError))
+                or status_code in RETRYABLE_STATUS_CODES
+            )
 
-        if not retryable or attempt >= max_attempts:
-            raise
+            if not retryable or attempt >= max_attempts:
+                raise
 
-        delay = RETRY_DELAYS_SECONDS[attempt - 1]
-        status_text = (
-            f"HTTP {status_code}" if status_code is not None
-            else exc.__class__.__name__
-        )
-        print(
-            f"[retry] {label}: {status_text}; "
-            f"attempt {attempt}/{max_attempts}, retrying in {delay}s..."
-        )
-        time.sleep(delay)
+            delay = RETRY_DELAYS_SECONDS[attempt - 1]
+            status_text = (
+                f"HTTP {status_code}"
+                if status_code is not None
+                else exc.__class__.__name__
+            )
+            print(
+                f"[retry] {label}: {status_text}; "
+                f"attempt {attempt}/{max_attempts}, "
+                f"retrying in {delay}s..."
+            )
+            time.sleep(delay)
 
 
 def ensure_parent(path: str) -> None:
