@@ -17,9 +17,10 @@ from research_v2.schema import parse_json_object, validate_detection_payload
 load_dotenv()
 
 NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1"
-DEFAULT_MODEL = "meta/llama-3.3-70b-instruct"
-DETECTOR_TEMPERATURE = 0.0
-VICTIM_TEMPERATURE = 0.0
+DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-a12b"
+DETECTOR_TEMPERATURE = 0.5
+VICTIM_TEMPERATURE = 0.5
+TOP_P = 1.0
 
 
 def utc_now() -> str:
@@ -68,6 +69,7 @@ class ResearchDetector:
             messages=[{"role": "user", "content": prompt}],
             max_tokens=384,
             temperature=DETECTOR_TEMPERATURE,
+            top_p=TOP_P,
         )
         raw_text = response.choices[0].message.content
         parsed = validate_detection_payload(parse_json_object(raw_text))
@@ -97,6 +99,7 @@ class ResearchVictim:
             ],
             max_tokens=512,
             temperature=VICTIM_TEMPERATURE,
+            top_p=TOP_P,
         )
         text = response.choices[0].message.content
         leakage = detect_canary_leakage(text, scenario_key)
