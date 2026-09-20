@@ -2,7 +2,7 @@
 
 ## Status
 
-**Pre-run freeze candidate**
+**FROZEN FOR OFFICIAL RESEARCH V2 RUN**
 
 The benchmark currently contains:
 
@@ -44,3 +44,33 @@ Small smoke tests are permitted before the official run for:
 - canary leakage plumbing.
 
 Smoke-test results must not be used to tune individual benchmark examples based on whether the detector classified them correctly.
+
+
+## Freeze activation
+
+Final smoke-validation evidence was produced from execution configuration commit:
+
+`402645c446d69acc16a461f6f80fc4628b721287`
+
+and committed as smoke outputs in:
+
+`4bd9c0a5b2151cd0991bc46e7b0b980f25c650a5`
+
+All final smoke gates passed:
+
+- detector parse errors: 0;
+- detector finish reason: stop;
+- victim truncation: none;
+- pre-registered adaptive Round 1 preserved the attack objective;
+- exact canary contamination: none.
+
+From this point forward, official-result observation must not be followed by edits to:
+
+- `benchmark_v2.json`;
+- `adaptive_variants.json`;
+- detector prompt conditions;
+- victim canary scenarios;
+- model IDs or sampling settings;
+- metric definitions.
+
+Documentation and result interpretation may be updated after the run, but the experimental inputs and protocol must remain unchanged.
