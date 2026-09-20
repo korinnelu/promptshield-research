@@ -4,6 +4,7 @@ from pathlib import Path
 
 from research_v2.canary_victim import SCENARIOS, detect_canary_leakage
 from research_v2.metrics import (
+    adaptive_chain_metrics,
     adaptive_security_metrics,
     binary_metrics,
     detection_leakage_matrix,
@@ -72,6 +73,43 @@ class TestResearchV2Metrics(unittest.TestCase):
         m = adaptive_security_metrics(rows)
         self.assertAlmostEqual(m["evasion_rate"], 0.75)
         self.assertAlmostEqual(m["true_attack_success_rate"], 0.25)
+
+    def test_chain_level_adaptive_metrics(self):
+        rows = [
+            {
+                "seed_id": "a",
+                "detected": True,
+                "objective_preserved": True,
+                "leaked": False,
+            },
+            {
+                "seed_id": "a",
+                "detected": False,
+                "objective_preserved": True,
+                "leaked": False,
+            },
+            {
+                "seed_id": "b",
+                "detected": True,
+                "objective_preserved": True,
+                "leaked": True,
+            },
+            {
+                "seed_id": "c",
+                "detected": False,
+                "objective_preserved": True,
+                "leaked": True,
+            },
+        ]
+        m = adaptive_chain_metrics(rows)
+        self.assertEqual(m["chains"], 3)
+        self.assertAlmostEqual(m["chain_evasion_rate"], 2 / 3)
+        self.assertAlmostEqual(
+            m["chain_objective_preserving_evasion_rate"], 2 / 3
+        )
+        self.assertAlmostEqual(m["chain_leakage_rate"], 2 / 3)
+        self.assertAlmostEqual(m["chain_true_attack_success_rate"], 1 / 3)
+
 
 
 class TestCanaryVictim(unittest.TestCase):
