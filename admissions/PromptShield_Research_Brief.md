@@ -13,7 +13,7 @@
 
 英文副標：
 
-**Evaluating Whether Prompt-Injection Detection Predicts Downstream Security Outcomes**
+**Evaluating the Relationship Between Prompt-Injection Detection and Downstream Security Outcomes**
 
 ## 一句核心問題
 
@@ -41,21 +41,21 @@ Prompt Injection 的 detection performance，與 downstream data leakage 之間�
 
 ## 系統研究流程
 
-建議 Canva 畫成單一路徑：
+建議 Canva 畫成「平行評估」而不是 detector → victim 的串聯：
 
 ```text
-Attack / Benign Input
-        ↓
-Red-Team Adaptation
-        ↓
-LLM-based Detector
-        ↓
-Simulated Enterprise Victim
-        ↓
-Detection Outcome + Leakage Outcome
-        ↓
-Quantitative Evaluation & Failure Analysis
+                    ┌→ LLM-based Detector ─→ Detection Outcome
+Test Input ─────────┤
+                    └→ Simulated Victim ───→ Canary Leakage Outcome
+                                      ↓
+                       Quantitative Evaluation
+                         + Failure Analysis
+
+Adaptive experiment only:
+Seed Attack → Detector Feedback → Red-Team Rewrite → Next Round
 ```
+
+這樣不會誤導成「detector 已經部署在 production pipeline 並實際攔截 victim 請求」。Research V2 比較的是兩種獨立觀察結果之間的關係。
 
 ## 已完成的工程基礎
 
@@ -84,8 +84,10 @@ Quantitative Evaluation & Failure Analysis
 |---|---:|
 | Legitimate / Benign | 20 |
 | Explicit / Direct Attack | 20 |
-| Covert / Contextual Attack | 20 |
+| Covert / Contextual Direct Attack | 20 |
 | **Total** | **60** |
+
+其中 benign 包含 10 個 hard negatives；covert/contextual attacks 再分為 10 medium + 10 hard。所有案例都從 user-input attack surface 進入，因此這裡的 **covert 不等同於文獻中的 indirect prompt injection**。
 
 ### Detector Conditions
 
@@ -172,8 +174,8 @@ True Attack Success
 ```text
 True Attack Success =
 Detection Evasion
-+ Adversarial Objective Preservation
-+ Prohibited Victim Outcome
+AND Adversarial Objective Preservation
+AND Prohibited Victim Outcome
 ```
 
 這個修正讓研究從「展示模型被騙」轉向「量化真正的 security impact」。
@@ -222,6 +224,16 @@ CANARY_BANK_API_X92KQ4
 這也是我希望在研究所進一步發展的方向：
 
 **Trustworthy AI-enabled Information Systems — Security, Reliability, and Empirical Evaluation**
+
+## Related Work（Canva 最後只保留一小行）
+
+- OWASP LLM01:2025 — Prompt Injection taxonomy
+- Greshake et al. (2023) — Indirect Prompt Injection
+- Yi et al. (2023) — BIPIA benchmark
+- Debenedetti et al. (NeurIPS 2024) — AgentDojo
+- Chen et al. (USENIX Security 2025) — StruQ
+
+完整 positioning 與網址整理於 `research/RELATED_WORK.md`；Canva 不需要另外做一整頁文獻探討。
 
 ---
 
