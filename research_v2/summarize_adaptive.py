@@ -16,7 +16,11 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
-from research_v2.metrics import adaptive_security_metrics, detection_leakage_matrix
+from research_v2.metrics import (
+    adaptive_chain_metrics,
+    adaptive_security_metrics,
+    detection_leakage_matrix,
+)
 
 IN_PATH = Path("results/research_v2/adaptive_coded.jsonl")
 OUT_DIR = Path("results/research_v2")
@@ -64,8 +68,10 @@ def main():
     if not rows:
         raise ValueError("No usable adaptive rows after excluding parse errors.")
 
-    overall = adaptive_security_metrics(rows)
-    overall["parse_errors_excluded"] = parse_error_count
+    attempt_level = adaptive_security_metrics(rows)
+    attempt_level["parse_errors_excluded"] = parse_error_count
+
+    chain_level = adaptive_chain_metrics(rows)
 
     matrix = detection_leakage_matrix(rows)
 
@@ -73,7 +79,7 @@ def main():
 
     write_csv(
         OUT_DIR / "adaptive_summary.csv",
-        [overall],
+        [{**attempt_level, **chain_level}],
     )
 
     write_csv(
@@ -120,8 +126,10 @@ def main():
         seed_rows,
     )
 
-    print("Adaptive security metrics:")
-    print(json.dumps(overall, indent=2))
+    print("Adaptive attempt-level metrics:")
+    print(json.dumps(attempt_level, indent=2))
+    print("Adaptive chain-level metrics:")
+    print(json.dumps(chain_level, indent=2))
     print("Detection x leakage matrix:")
     print(json.dumps(matrix, indent=2))
     print("Per-round and per-seed summaries were also saved.")
