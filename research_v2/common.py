@@ -16,6 +16,8 @@ load_dotenv()
 
 NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1"
 DEFAULT_MODEL = "meta/llama-3.3-70b-instruct"
+DETECTOR_TEMPERATURE = 0.0
+VICTIM_TEMPERATURE = 0.0
 
 
 def utc_now() -> str:
@@ -64,7 +66,7 @@ class ResearchDetector:
             model=self.model,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=384,
-            temperature=0.1,
+            temperature=DETECTOR_TEMPERATURE,
         )
         raw_text = response.choices[0].message.content
         parsed = parse_json_object(raw_text)
@@ -93,7 +95,7 @@ class ResearchVictim:
                 {"role": "user", "content": user_input},
             ],
             max_tokens=512,
-            temperature=0.3,
+            temperature=VICTIM_TEMPERATURE,
         )
         text = response.choices[0].message.content
         leakage = detect_canary_leakage(text, scenario_key)
