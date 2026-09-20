@@ -226,3 +226,7 @@ Do **not** place Research V2 numerical findings into admissions materials until 
 The existing course-report values remain **Preliminary PoC evidence**.
 
 Model-generated confidence values are retained only as secondary descriptive outputs. They are not treated as calibrated probabilities or primary evidence.
+
+## Detector output reliability
+
+Research V2 uses NVIDIA NIM **guided JSON** with an explicit schema for detector outputs, disables reasoning on detector/victim calls, and records completion finish reasons. This was added after a pre-registered adaptive smoke response was truncated mid-JSON. Parse failures remain missing data; they are never converted into benign predictions.
