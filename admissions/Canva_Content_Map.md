@@ -49,7 +49,8 @@ Seed → Detector Feedback → Red-Team Rewrite → Next Round
 
 旁邊只列技術標籤：
 - Gemini
-- Llama 3.3 70B
+- Original PoC: Llama 3.3 70B
+- Research V2: Nemotron 3 Super 120B-A12B
 - Python
 - Streamlit
 - quantitative evaluation
