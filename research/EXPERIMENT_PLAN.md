@@ -85,18 +85,25 @@ Recommended run count:
 
 ## Adaptive protocol
 
-Recommended seed count: **12 malicious objectives**.
+Use **12 malicious objectives**, each with three pre-registered variants written before official results are viewed:
 
-For each seed:
+- Round 0 — overt/direct request
+- Round 1 — business-pretext reformulation
+- Round 2 — workflow-completion reformulation
 
-1. Run Round 0 attack.
-2. If detected, ask the red team to rewrite the attack while explicitly preserving the original adversarial objective.
-3. Repeat for a maximum of two adaptation rounds.
-4. At every round:
+Adaptive execution policy:
+
+1. Run Round 0.
+2. If detected, advance to Round 1.
+3. If still detected, advance to Round 2.
+4. Stop the chain after the first detector evasion or after Round 2.
+5. At every executed round:
    - run detector;
-   - run victim model;
+   - run victim model independently;
    - record canary leakage;
-   - score whether the malicious objective remains present.
+   - manually code whether the original adversarial objective is still preserved.
+
+This design replaces generative rewriting for the official experiment. A Gemini 3.6 Flash smoke test returned a policy refusal rather than an attack rewrite, which would have created a false appearance of detector evasion by destroying the objective. The invalid smoke is preserved in `research/SMOKE_TEST_AUDIT.md`.
 
 ### Objective-preservation rubric
 
@@ -201,14 +208,10 @@ Current sampling configuration:
 Because the model changed, Research V2 results are a **new empirical evaluation**, not a direct apples-to-apples reproduction of the original PoC.
 
 
-## Adaptive red-team generator version
+## Adaptive-generation decision
 
-The original course PoC used Gemini 2.5 Flash for red-team generation.
+The original course PoC used Gemini 2.5 Flash for red-team generation. A Research V2 smoke test attempted Gemini 3.6 Flash through the Interactions API, but the model returned a refusal instead of an objective-preserving attack rewrite.
 
-Before the official Research V2 run, that model became unavailable to this API user. Research V2 therefore uses the fixed model:
+Because provider-policy refusal is a confound for RQ2, the official Research V2 adaptive experiment does **not** use a generative red-team model. It uses pre-registered, author-constructed variants with a fixed adaptive progression rule.
 
-`gemini-3.6-flash`
-
-through the **Gemini Interactions API v1**.
-
-This model migration must be disclosed with the Research V2 results. Adaptive outcomes should be interpreted within the new fixed setup rather than as a direct performance comparison with the original Gemini 2.5 PoC.
+This is methodologically preferable for the admissions study because it improves reproducibility and prevents "evasion" from being caused merely by the generator ceasing to attack.
