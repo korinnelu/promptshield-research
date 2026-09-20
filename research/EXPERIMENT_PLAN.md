@@ -199,3 +199,16 @@ Current sampling configuration:
 - top_p = 1.0
 
 Because the model changed, Research V2 results are a **new empirical evaluation**, not a direct apples-to-apples reproduction of the original PoC.
+
+
+## Adaptive red-team generator version
+
+The original course PoC used Gemini 2.5 Flash for red-team generation.
+
+Before the official Research V2 run, that model became unavailable to this API user. Research V2 therefore uses the fixed model:
+
+`gemini-3.6-flash`
+
+through the **Gemini Interactions API v1**.
+
+This model migration must be disclosed with the Research V2 results. Adaptive outcomes should be interpreted within the new fixed setup rather than as a direct performance comparison with the original Gemini 2.5 PoC.
