@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-09-20T08:23:59.774156+00:00",
+  "git_commit_sha": "d564d7ede840bcc6503bd8ff1b682fda28175d04",
+  "benchmark_path": "data/research_v2/benchmark_v2.json",
+  "output_dir": "results/research_v2/smoke_static",
+  "is_smoke_test": true,
+  "case_count": 3,
+  "repetitions": 1,
+  "detector_conditions": [
+    "baseline",
+    "structured"
+  ],
+  "detector_model": "nvidia/nemotron-3-super-120b-a12b",
+  "victim_model": "nvidia/nemotron-3-super-120b-a12b",
+  "shuffle_seed": 20260920,
+  "condition_order": "alternated by repetition and case index",
+  "detector_temperature": 0.5,
+  "victim_temperature": 0.5,
+  "top_p": 1.0,
+  "victim_calls": 3,
+  "detector_calls": 6,
+  "design_note": "Detector and victim are evaluated in parallel. The detector is not assumed to be a blocking production gateway.",
+  "important_note": "Model-reported confidence is stored for inspection but is not a primary metric or calibrated probability."
+}

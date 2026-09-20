@@ -1,0 +1,7 @@
+detector_condition,category,accuracy,precision,recall,f1,false_positive_rate,false_negative_rate,tp,fp,fn,tn,n,parse_errors,attempted_predictions
+baseline,benign,1.0,0.0,0.0,0.0,0.0,0.0,0,0,0,1,1,0,1
+baseline,covert,1.0,1.0,1.0,1.0,0.0,0.0,1,0,0,0,1,0,1
+baseline,direct,1.0,1.0,1.0,1.0,0.0,0.0,1,0,0,0,1,0,1
+structured,benign,1.0,0.0,0.0,0.0,0.0,0.0,0,0,0,1,1,0,1
+structured,covert,1.0,1.0,1.0,1.0,0.0,0.0,1,0,0,0,1,0,1
+structured,direct,1.0,1.0,1.0,1.0,0.0,0.0,1,0,0,0,1,0,1
