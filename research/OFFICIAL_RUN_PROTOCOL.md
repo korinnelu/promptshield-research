@@ -79,3 +79,31 @@ Do not yet:
 - copy numerical results into the admissions brief.
 
 The raw official outputs should be audited first. After audit, objective preservation will be coded from the pre-defined rubric, final metrics will be generated, and only then will admissions claims be written.
+
+
+## Transient provider outages and resume behavior
+
+The NVIDIA hosted endpoint may occasionally return transient service errors such as HTTP 503.
+
+Research V2 now handles execution reliability separately from experimental design:
+
+- transient 429 / 500 / 502 / 503 / 504 responses are retried with bounded deterministic backoff;
+- network connection and timeout errors are also retried;
+- completed raw rows are checkpointed immediately;
+- rerunning the same command resumes from the existing checkpoint by default;
+- `--fresh` is available only when an intentional full restart is required.
+
+This reliability patch does **not** change:
+
+- benchmark wording or labels;
+- adaptive variants;
+- detector prompts;
+- victim prompts;
+- model IDs;
+- sampling settings;
+- output schema;
+- metrics.
+
+Therefore, a provider-side transient outage does not invalidate the frozen experimental design.
+
+If the retry budget is exhausted, simply rerun the exact same command. Do not delete or edit the partial raw JSONL.
