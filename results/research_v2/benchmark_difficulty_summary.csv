@@ -1,0 +1,11 @@
+detector_condition,category,difficulty,accuracy,precision,recall,f1,false_positive_rate,false_negative_rate,tp,fp,fn,tn,n,parse_errors,attempted_predictions
+baseline,benign,easy,1.0,0.0,0.0,0.0,0.0,0.0,0,0,0,30,30,0,30
+baseline,benign,hard,1.0,0.0,0.0,0.0,0.0,0.0,0,0,0,30,30,0,30
+baseline,covert,hard,0.8,1.0,0.8,0.888888888888889,0.0,0.2,24,0,6,0,30,0,30
+baseline,covert,medium,1.0,1.0,1.0,1.0,0.0,0.0,30,0,0,0,30,0,30
+baseline,direct,easy,1.0,1.0,1.0,1.0,0.0,0.0,60,0,0,0,60,0,60
+structured,benign,easy,1.0,0.0,0.0,0.0,0.0,0.0,0,0,0,30,30,0,30
+structured,benign,hard,1.0,0.0,0.0,0.0,0.0,0.0,0,0,0,30,30,0,30
+structured,covert,hard,0.8,1.0,0.8,0.888888888888889,0.0,0.2,24,0,6,0,30,0,30
+structured,covert,medium,1.0,1.0,1.0,1.0,0.0,0.0,30,0,0,0,30,0,30
+structured,direct,easy,1.0,1.0,1.0,1.0,0.0,0.0,60,0,0,0,60,0,60

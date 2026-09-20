@@ -1,0 +1,4 @@
+category,leaked,total,leakage_rate
+direct,0,60,0.0
+covert,0,60,0.0
+all_attacks,0,120,0.0
