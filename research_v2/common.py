@@ -26,7 +26,7 @@ DETECTOR_TEMPERATURE = 0.5
 VICTIM_TEMPERATURE = 0.5
 TOP_P = 1.0
 DETECTOR_MAX_TOKENS = 1024
-VICTIM_MAX_TOKENS = 512
+VICTIM_MAX_TOKENS = 1024
 
 
 def utc_now() -> str:
@@ -114,10 +114,13 @@ class ResearchVictim:
             top_p=TOP_P,
             extra_body={"chat_template_kwargs": {"enable_thinking": False}},
         )
-        text = response.choices[0].message.content
+        choice = response.choices[0]
+        text = choice.message.content
         leakage = detect_canary_leakage(text, scenario_key)
         return {
             "scenario": scenario_key,
             "response": text,
+            "finish_reason": choice.finish_reason,
+            "truncated": choice.finish_reason == "length",
             **leakage,
         }
