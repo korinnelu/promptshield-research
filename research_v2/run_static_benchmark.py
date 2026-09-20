@@ -112,6 +112,11 @@ def main():
         default=None,
         help="Optional small smoke-test limit.",
     )
+    parser.add_argument(
+        "--fresh",
+        action="store_true",
+        help="Discard any existing raw checkpoint and restart from zero.",
+    )
     args = parser.parse_args()
 
     if args.repetitions < 1:
@@ -140,29 +145,70 @@ def main():
     leakage_path = out_dir / "victim_leakage_summary.csv"
     metadata_path = out_dir / "experiment_metadata.json"
 
-    Path(raw_path).write_text("", encoding="utf-8")
+    raw_file = Path(raw_path)
+    rows = []
 
+    if raw_file.exists() and not args.fresh:
+        with raw_file.open(encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    rows.append(json.loads(line))
+        if rows:
+            print(
+                f"[resume] Loaded {len(rows)} existing detector rows "
+                f"from {raw_path}."
+            )
+    else:
+        raw_file.write_text("", encoding="utf-8")
+
+    existing_rows_loaded = len(rows)
     detector = ResearchDetector(model=args.model)
     victim = ResearchVictim(model=args.victim_model)
-    rows = []
+
+    completed = {
+        (int(r["repetition"]), r["case_id"], r["detector_condition"])
+        for r in rows
+    }
+    existing_pair_rows = defaultdict(list)
+    for r in rows:
+        existing_pair_rows[(int(r["repetition"]), r["case_id"])].append(r)
 
     for rep in range(1, args.repetitions + 1):
         rep_cases = list(cases)
         random.Random(args.shuffle_seed + rep).shuffle(rep_cases)
 
         for case_index, case in enumerate(rep_cases):
-            # The victim is evaluated independently of detector condition.
-            # Sharing the same victim outcome across the two detector conditions
-            # makes the detector comparison paired rather than confounded by a
-            # different victim sample.
-            victim_result = victim.respond(case["scenario"], case["text"])
-
             condition_order = (
                 ("baseline", "structured")
                 if (rep + case_index) % 2 == 0
                 else ("structured", "baseline")
             )
-            for condition in condition_order:
+            missing_conditions = [
+                condition
+                for condition in condition_order
+                if (rep, case["id"], condition) not in completed
+            ]
+
+            if not missing_conditions:
+                continue
+
+            # If one detector condition completed before an interruption, reuse
+            # its already-recorded victim response for the missing paired call.
+            pair_key = (rep, case["id"])
+            prior_pair = existing_pair_rows.get(pair_key, [])
+            if prior_pair:
+                prior = prior_pair[0]
+                victim_result = {
+                    "leaked": prior["victim_leaked"],
+                    "leaked_canaries": prior["leaked_canaries"],
+                    "finish_reason": prior["victim_finish_reason"],
+                    "truncated": prior["victim_truncated"],
+                    "response": prior["victim_response"],
+                }
+            else:
+                victim_result = victim.respond(case["scenario"], case["text"])
+
+            for condition in missing_conditions:
                 detection = detector.analyze(case["text"], condition)
                 parsed = detection["parsed"]
 
@@ -201,6 +247,12 @@ def main():
                 }
                 append_jsonl(raw_path, row)
                 rows.append(row)
+                completed.add((rep, case["id"], condition))
+                existing_pair_rows[pair_key].append(row)
+                print(
+                    f"[progress] {len(rows)}/"
+                    f"{len(cases) * args.repetitions * 2} detector rows saved"
+                )
 
     # Pooled metrics by detector condition.
     overall = []
@@ -425,8 +477,14 @@ def main():
         "detector_reasoning": "disabled",
         "victim_reasoning": "disabled",
         "detector_structured_output": "guided_json",
-        "victim_calls": len(cases) * args.repetitions,
-        "detector_calls": len(cases) * args.repetitions * 2,
+        "expected_victim_calls_without_resume": len(cases) * args.repetitions,
+        "expected_detector_calls_without_resume": len(cases) * args.repetitions * 2,
+        "checkpoint_resume": "enabled unless --fresh is supplied",
+        "existing_rows_loaded": existing_rows_loaded,
+        "retry_policy": (
+            "transient 429/500/502/503/504 and network timeout/connection "
+            "errors use bounded deterministic backoff"
+        ),
         "design_note": (
             "Detector and victim are evaluated in parallel. "
             "The detector is not assumed to be a blocking production gateway."
