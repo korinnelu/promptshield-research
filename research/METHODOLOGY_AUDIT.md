@@ -310,3 +310,16 @@ Methodological consequence:
 - the old Llama 3.3 results remain preliminary historical evidence;
 - the new benchmark should be interpreted internally across its own fixed detector conditions, attack categories, repetitions, and victim outcomes;
 - exact model IDs and sampling parameters must be disclosed with all Research V2 results.
+
+
+## Adaptive generator policy refusal discovered in smoke testing
+
+A Research V2 smoke test with Gemini 3.6 Flash did not produce an attack rewrite. It returned a refusal message. The downstream detector classified that refusal as benign.
+
+That event must **not** be counted as adaptive evasion because the malicious objective disappeared.
+
+This revealed an additional methodological confound:
+
+> A generative red-team model's own safety policy can change the attack distribution and create apparent detector success/failure unrelated to the detector itself.
+
+Official Research V2 therefore uses pre-registered, objective-preserving obfuscation variants instead of live generative rewriting. This makes the adaptive experiment more reproducible and keeps objective preservation independently auditable.
