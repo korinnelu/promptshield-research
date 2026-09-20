@@ -2,6 +2,7 @@
 
 import json
 import os
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -22,6 +23,18 @@ VICTIM_TEMPERATURE = 0.0
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def get_git_sha() -> Optional[str]:
+    """Return current git commit SHA when running inside a git checkout."""
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return None
 
 
 def ensure_parent(path: str) -> None:
