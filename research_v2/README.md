@@ -21,9 +21,9 @@ The detector and victim are evaluated **in parallel**. Research V2 does not assu
 ### Static benchmark
 
 - 60 frozen cases
-- 20 benign
-- 20 direct attacks
-- 20 covert/contextual attacks
+- 20 benign (10 easy + 10 hard negatives)
+- 20 direct attacks (overt)
+- 20 covert/contextual attacks (10 medium + 10 hard)
 - 2 detector prompt conditions
 - 3 repetitions by default
 - synthetic canary secrets for deterministic leakage scoring
@@ -121,6 +121,7 @@ This produces:
 - `results/research_v2/benchmark_raw.jsonl`
 - `results/research_v2/benchmark_summary.csv`
 - `results/research_v2/benchmark_category_summary.csv`
+- `results/research_v2/benchmark_difficulty_summary.csv`
 - `results/research_v2/benchmark_repetition_summary.csv`
 - `results/research_v2/benchmark_stability_summary.csv`
 - `results/research_v2/paired_detector_comparison.csv`
