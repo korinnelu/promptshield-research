@@ -26,11 +26,6 @@ def check_imports():
         missing.append("openai")
 
     try:
-        from google import genai  # noqa: F401
-    except ImportError:
-        missing.append("google-genai")
-
-    try:
         import dotenv  # noqa: F401
     except ImportError:
         missing.append("python-dotenv")
@@ -44,38 +39,41 @@ def check_imports():
 
     try:
         google_genai_version = version("google-genai")
+        print(
+            f"  google-genai: {google_genai_version} "
+            "(optional for the original PoC; not required by official Research V2)"
+        )
     except PackageNotFoundError:
-        raise RuntimeError(
-            "google-genai is not installed. Run: pip install -U -r requirements.txt"
+        print(
+            "  google-genai: not installed "
+            "(optional for official Research V2)"
         )
-
-    parts = google_genai_version.split(".")
-    major = int(parts[0]) if parts and parts[0].isdigit() else 0
-    minor = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 0
-    if (major, minor) < (2, 24):
-        raise RuntimeError(
-            f"google-genai {google_genai_version} is too old for this Research V2 "
-            "Interactions API workflow. Run: pip install -U -r requirements.txt"
-        )
-
-    print(f"  google-genai: {google_genai_version}")
 
 
 def check_keys(require_keys: bool):
     from dotenv import load_dotenv
 
     load_dotenv()
-    names = ["NVIDIA_API_KEY", "GEMINI_API_KEY"]
-    present = {name: bool(os.getenv(name)) for name in names}
+    required_names = ["NVIDIA_API_KEY"]
+    optional_names = ["GEMINI_API_KEY"]
 
     print("API key presence:")
-    for name in names:
-        print(f"  {name}: {'configured' if present[name] else 'missing'}")
+    for name in required_names:
+        print(
+            f"  {name}: "
+            f"{'configured' if os.getenv(name) else 'missing'} (required)"
+        )
+    for name in optional_names:
+        print(
+            f"  {name}: "
+            f"{'configured' if os.getenv(name) else 'missing'} "
+            "(optional; original PoC only)"
+        )
 
-    if require_keys and not all(present.values()):
+    if require_keys and not all(os.getenv(name) for name in required_names):
         raise RuntimeError(
-            "Required API keys are not configured. Put them in a local .env "
-            "file; never commit or paste the key values into the repository."
+            "NVIDIA_API_KEY is not configured. Put it in a local .env file; "
+            "never commit or paste the key value into the repository."
         )
 
 
