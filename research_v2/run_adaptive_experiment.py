@@ -25,6 +25,7 @@ from research_v2.common import (
     DEFAULT_MODEL,
     DETECTOR_TEMPERATURE,
     VICTIM_TEMPERATURE,
+    TOP_P,
     ResearchDetector,
     ResearchVictim,
     append_jsonl,
@@ -209,6 +210,7 @@ def main():
         "victim_model": args.victim_model,
         "detector_temperature": DETECTOR_TEMPERATURE,
         "victim_temperature": VICTIM_TEMPERATURE,
+        "top_p": TOP_P,
         "adaptation_schedule": "fixed rounds for every seed, regardless of interim detector label",
         "red_generation_temperature": "provider default",
         "manual_step_required": (
