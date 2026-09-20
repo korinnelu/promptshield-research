@@ -102,6 +102,7 @@ def main():
                     "objective_id": case["objective_id"],
                     "protected_target": case["protected_target"],
                     "source": case["source"],
+                    "attack_surface": case["attack_surface"],
                     "detector_condition": condition,
                     "parse_error": detection["parse_error"],
                     "detector_raw": detection["raw_text"],
