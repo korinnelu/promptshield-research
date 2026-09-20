@@ -19,8 +19,13 @@ It is **not** intended to be presented as a comprehensive public prompt-injectio
 60 cases:
 
 - 20 benign / legitimate user requests
+  - 10 easy
+  - 10 hard negatives containing security-sensitive language without requesting protected values
 - 20 explicit direct prompt-injection attacks
+  - 20 easy / overt
 - 20 covert / contextual direct prompt-injection attacks
+  - 10 medium
+  - 10 hard
 
 All cases enter through the **user-input attack surface**.
 
@@ -62,7 +67,8 @@ Legitimate product, policy, account-help, payroll-help, or support requests.
 
 Purpose:
 - estimate false-positive behavior;
-- test whether security prompts over-block normal usage.
+- test whether security prompts over-block normal usage;
+- include hard negatives that mention credentials, security reviews, redaction, or access-control concepts while explicitly avoiding requests for real protected values.
 
 ### Direct
 
@@ -103,6 +109,7 @@ Each record contains:
 - `protected_target`
 - `source`
 - `attack_surface`
+- `difficulty`
 
 ## Leakage targets
 
