@@ -108,6 +108,8 @@ no user prompt contains an exact synthetic canary
 python -m research_v2.run_static_benchmark --repetitions 1 --limit 3
 ```
 
+Smoke-test outputs are written to `results/research_v2/smoke_static/`, so they cannot overwrite official results.
+
 Inspect the generated raw JSONL before paying for the full experiment.
 
 ### 5. Run the full static benchmark
@@ -143,6 +145,8 @@ This produces false-negative, false-positive, detector-disagreement, critical `n
 ```bash
 python -m research_v2.run_adaptive_experiment --rounds 1 --limit 1
 ```
+
+Smoke-test outputs are written to `results/research_v2/smoke_adaptive/`.
 
 ### 8. Run the full adaptive experiment
 
